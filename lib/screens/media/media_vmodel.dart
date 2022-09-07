@@ -27,6 +27,7 @@ class MediaViewModel extends ChangeNotifier {
   late String thumbnailUrl;
   late dynamic currentMediaArtists;
   List queue = [];
+  List originalQueue = [];
 
   late Map<String, dynamic> data;
 
@@ -105,7 +106,8 @@ class MediaViewModel extends ChangeNotifier {
   Future<void> _setInitialPlaylist() async {
     data = await _database.getUserData(uid: _user!.uid) as Map<String, dynamic>;
     String nowPlayingVideoId = data["nowPlaying"]["videoId"];
-    queue = data["queue"];
+    originalQueue = data["queue"];
+    queue = originalQueue;
     notifyListeners();
     _playlist = ConcatenatingAudioSource(children: []);
     Duration playerPosition = parseDuration(data["nowPlaying"]["playerPosition"]);
@@ -139,7 +141,7 @@ class MediaViewModel extends ChangeNotifier {
                 "thumbnailUrl": queueSong.thumbnailUrl,
                 "videoId": queueSong.videoId,
               };
-              print("DEBUG songUrl ${queueSong.mediaUrl}");
+              // print("DEBUG songUrl ${queueSong.mediaUrl}");
               queue[i] = queueSongData;
               currentMediaArtists = queueSong.artists;
               thumbnailUrl = queueSong.thumbnailUrl;
@@ -216,11 +218,12 @@ class MediaViewModel extends ChangeNotifier {
 
       // update current song title, artists and thumbnail
       final currentItem = sequenceState.currentSource;
-      final String? title = queue[nowPlayingIndex]["title"];
+      final currentTag = queue[originalQueue.indexOf(currentItem!.tag)];
+      final String? title = currentTag["title"];
       currentMediaTitleNotifier.value = title ?? '';
-      thumbnailUrlNotifier.value = queue[nowPlayingIndex]["thumbnailUrl"] ?? "";
+      thumbnailUrlNotifier.value = currentTag["thumbnailUrl"] ?? "";
 
-      final artists = queue[nowPlayingIndex]["artists"] ?? "";
+      final artists = currentTag["artists"] ?? "";
       if (artists.runtimeType == List) {
         currentArtistsNotifier.value = getArtists(artists);
       } else {
@@ -277,7 +280,6 @@ class MediaViewModel extends ChangeNotifier {
   void onPreviousSongButtonPressed() async {
     updateIsLoadingTrack(true);
     await _audioPlayer.seekToPrevious();
-    nowPlayingIndex--;
     _listenForChangesInSequenceState();
     updateIsLoadingTrack(false);
   }
@@ -285,7 +287,6 @@ class MediaViewModel extends ChangeNotifier {
   void onNextSongButtonPressed() async {
     updateIsLoadingTrack(true);
     await _audioPlayer.seekToNext();
-    nowPlayingIndex++;
     _listenForChangesInSequenceState();
     updateIsLoadingTrack(false);
   }
