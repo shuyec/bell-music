@@ -152,7 +152,6 @@ class _MediaState extends State<Media> {
                                       children: const [
                                         Expanded(child: ThumbnailMedia()),
                                         CurrentMediaTitle(padding: padding, fontSize: 35),
-                                        SizedBox(height: 10),
                                         CurrentMediaArtists(padding: padding, fontSize: 25),
                                         SizedBox(height: 10),
 
@@ -198,12 +197,11 @@ class CurrentMediaArtists extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final double width = MediaQuery.of(context).size.width - padding.left - padding.right - 10;
-    final String artists = context.watch<MediaViewModel>().currentArtistsNotifier.value;
-    TextStyle artistsStyle = TextStyle(fontSize: fontSize);
     return ValueListenableBuilder<String>(
       valueListenable: context.watch<MediaViewModel>().currentArtistsNotifier,
-      builder: (context, currentArtists, _) {
-        return CustomMarquee(text: artists, style: artistsStyle, height: fontSize + 10, width: width);
+      builder: (_, currentArtists, __) {
+        TextStyle artistsStyle = TextStyle(fontSize: fontSize);
+        return CustomMarquee(text: currentArtists, style: artistsStyle, height: fontSize + 10, width: width);
       },
     );
   }
