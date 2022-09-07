@@ -20,12 +20,14 @@ class CustomMarquee extends StatelessWidget {
               style: style,
             )
                 ? Marquee(
+                    key: UniqueKey(),
                     text: text,
                     style: style,
                     scrollAxis: Axis.horizontal,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     blankSpace: 20.0,
                     velocity: 100.0,
+                    startAfter: const Duration(seconds: 1),
                     pauseAfterRound: const Duration(seconds: 1),
                     showFadingOnlyWhenScrolling: true,
                     startPadding: 10.0,
@@ -50,12 +52,14 @@ class CustomMarquee extends StatelessWidget {
               maxWidth: width,
             )
                 ? Marquee(
+                    key: UniqueKey(),
                     text: text,
                     style: style,
                     scrollAxis: Axis.horizontal,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     blankSpace: 20.0,
                     velocity: 100.0,
+                    startAfter: const Duration(seconds: 1),
                     pauseAfterRound: const Duration(seconds: 1),
                     showFadingOnlyWhenScrolling: true,
                     accelerationDuration: const Duration(seconds: 1),
