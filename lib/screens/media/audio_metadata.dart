@@ -16,6 +16,7 @@ class AudioMetadata {
   });
 }
 
+CancelToken cancelToken = CancelToken();
 Future<AudioMetadata?> getMedia({required String videoId}) async {
   late Response response;
   late Response getResponse;
@@ -27,6 +28,8 @@ Future<AudioMetadata?> getMedia({required String videoId}) async {
   dio.options.headers['Connection'] = 'Keep-Alive';
   dio.options.headers["Accept"] = "application/json";
 
+  cancelToken.cancel();
+  cancelToken = CancelToken();
   while (!connectionSuccessful) {
     try {
       response = await dio.post(
@@ -39,6 +42,7 @@ Future<AudioMetadata?> getMedia({required String videoId}) async {
             validateStatus: (status) {
               return status! < 500;
             }),
+        cancelToken: cancelToken,
       );
       String resphead = response.headers["location"]![0].toString();
       getResponse = await dio.post(
@@ -46,6 +50,12 @@ Future<AudioMetadata?> getMedia({required String videoId}) async {
         data: {
           'videoId': videoId,
         },
+        options: Options(
+            followRedirects: true,
+            validateStatus: (status) {
+              return status! < 500;
+            }),
+        cancelToken: cancelToken,
       );
       if (getResponse.statusCode == 200) {
         connectionSuccessful = true;
