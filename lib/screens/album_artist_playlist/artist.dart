@@ -167,7 +167,7 @@ class ArtistWorks extends StatelessWidget {
           children: [
             oldCategory != category
                 ? ListTile(
-                    contentPadding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                    contentPadding: const EdgeInsets.only(left: 10, right: 10),
                     onTap: data[category]["browseId"] != null || data[category]["params"] != null
                         ? () async {
                             String categ = data.keys.elementAt(keyIndex - 1);
