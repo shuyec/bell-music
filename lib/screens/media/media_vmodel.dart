@@ -218,16 +218,19 @@ class MediaViewModel extends ChangeNotifier {
 
       // update current song title, artists and thumbnail
       final currentItem = sequenceState.currentSource;
-      final currentTag = queue[originalQueue.indexOf(currentItem!.tag)];
-      final String? title = currentTag["title"];
-      currentMediaTitleNotifier.value = title ?? '';
-      thumbnailUrlNotifier.value = currentTag["thumbnailUrl"] ?? "";
+      int currentTagIndex = originalQueue.indexOf(currentItem!.tag);
+      if (currentTagIndex != -1) {
+        final currentTag = queue[currentTagIndex];
+        final String? title = currentTag["title"];
+        currentMediaTitleNotifier.value = title ?? '';
+        thumbnailUrlNotifier.value = currentTag["thumbnailUrl"] ?? "";
 
-      final artists = currentTag["artists"] ?? "";
-      if (artists.runtimeType == List) {
-        currentArtistsNotifier.value = getArtists(artists);
-      } else {
-        currentArtistsNotifier.value = artists;
+        final artists = currentTag["artists"] ?? "";
+        if (artists.runtimeType == List) {
+          currentArtistsNotifier.value = getArtists(artists);
+        } else {
+          currentArtistsNotifier.value = artists;
+        }
       }
 
       // update playlist
