@@ -1,6 +1,3 @@
-import 'dart:ui';
-import 'package:flutter/material.dart';
-
 String capitalize(String type) {
   return "${type[0].toUpperCase()}${type.substring(1).toLowerCase()}";
 }
@@ -18,21 +15,6 @@ Duration parseDuration(String s) {
   }
   micros = (double.parse(parts[parts.length - 1]) * 1000000).round();
   return Duration(hours: hours, minutes: minutes, microseconds: micros);
-}
-
-bool willTextOverflow({required String text, required TextStyle style, double maxWidth = 0}) {
-  if (maxWidth == 0) {
-    var pixelRatio = window.devicePixelRatio;
-    var logicalScreenSize = window.physicalSize / pixelRatio;
-    maxWidth = logicalScreenSize.width;
-  }
-  final TextPainter textPainter = TextPainter(
-    text: TextSpan(text: text, style: style),
-    maxLines: 1,
-    textDirection: TextDirection.ltr,
-  )..layout(minWidth: 0, maxWidth: maxWidth);
-
-  return textPainter.didExceedMaxLines;
 }
 
 String getArtists(List artistsList) {
