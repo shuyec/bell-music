@@ -197,7 +197,7 @@ class MediaInfo extends StatelessWidget {
       artists = "";
     }
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+      padding: const EdgeInsets.only(left: 10, right: 10),
       child: Column(
         children: [
           // title
@@ -313,7 +313,7 @@ class _PlayShuffleButtonsState extends State<PlayShuffleButtons> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+      padding: const EdgeInsets.only(left: 10, right: 10),
       child: Row(
         children: [
           ClipRRect(
@@ -340,7 +340,7 @@ class _PlayShuffleButtonsState extends State<PlayShuffleButtons> {
                         size: 25,
                       ),
                       Padding(
-                        padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
+                        padding: EdgeInsets.only(left: 10),
                         child: Text(
                           "Play",
                           style: TextStyle(color: Colors.black, fontSize: 20),
@@ -380,7 +380,7 @@ class _PlayShuffleButtonsState extends State<PlayShuffleButtons> {
                       size: 25,
                     ),
                     Padding(
-                      padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
+                      padding: EdgeInsets.only(left: 10),
                       child: Text(
                         "Shuffle",
                         style: TextStyle(
