@@ -1,7 +1,25 @@
+import 'package:bell/screens/library/library_vmodel.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 class AAPViewModel extends ChangeNotifier {
+  final isAPLikedNotifier = ValueNotifier<bool>(false);
+
+  Future<bool?> changeIsAPLiked({required bool isAPLiked, required String id}) async {
+    late String rate;
+    if (id == "LM") {
+      return true;
+    } else if (isAPLiked) {
+      rate = "INDIFFERENT";
+      LibraryViewModel().rateAlbumPlaylist(id: id, rating: rate);
+    } else {
+      rate = "LIKE";
+      LibraryViewModel().rateAlbumPlaylist(id: id, rating: rate);
+    }
+    isAPLikedNotifier.value = !isAPLiked;
+    return !isAPLiked;
+  }
+
   Future<Map?> getAAPData({required String browseId, required String type}) async {
     late Response response;
     late Response getResponse;
@@ -47,7 +65,16 @@ class AAPViewModel extends ChangeNotifier {
         );
         if (getResponse.statusCode == 200) {
           connectionSuccessful = true;
-          return getResponse.data;
+          Map data = getResponse.data;
+          if (type == "album" || type == "playlist") {
+            bool? isAPInLibrary = await LibraryViewModel().checkIfInLibrary(browseId);
+            data["rating"] = isAPInLibrary;
+            print("DEBUG isAPInLibrary GETAPP $isAPInLibrary");
+            isAPLikedNotifier.value = isAPInLibrary as bool;
+          } else {
+            isAPLikedNotifier.value = true;
+          }
+          return data;
         }
       } catch (e) {
         // print("errore è ${e.toString()}");

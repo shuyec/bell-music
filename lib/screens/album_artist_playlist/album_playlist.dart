@@ -9,6 +9,8 @@ import 'package:iconly/iconly.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:bell/widgets/error.dart';
 import 'dart:math';
+import 'package:like_button/like_button.dart';
+import 'package:provider/provider.dart';
 
 class AlbumPlaylist extends StatefulWidget {
   const AlbumPlaylist({Key? key}) : super(key: key);
@@ -58,6 +60,15 @@ class _AlbumPlaylistState extends State<AlbumPlaylist> {
             return const Loading();
           } else if (snapshot.hasData) {
             if (data != null && data.isNotEmpty) {
+              late String id;
+              if (type == "album") {
+                id = data["audioPlaylistId"];
+              } else if (type == "playlist") {
+                id = data["id"];
+              } else {
+                id = data["id"];
+              }
+
               List tracks = data["tracks"];
               List thumbnails = data["thumbnails"];
               child = ListView(
@@ -74,7 +85,7 @@ class _AlbumPlaylistState extends State<AlbumPlaylist> {
                           const SizedBox(height: 90),
                           Thumbnail(thumbnails: thumbnails),
                           MediaInfo(data: data, artist: artist),
-                          const Buttons(),
+                          Buttons(id: id),
                           PlayShuffleButtons(tracks: tracks),
                           Tracks(
                             tracks: tracks,
@@ -224,36 +235,66 @@ class MediaInfo extends StatelessWidget {
 }
 
 class Buttons extends StatelessWidget {
-  const Buttons({Key? key}) : super(key: key);
+  const Buttons({Key? key, required this.id}) : super(key: key);
+  final String id;
+
+  // Future<bool?> onLikeButtonTapped(bool rating) async {
+  //   late String rate;
+  //   if (id == "LM") {
+  //     return true;
+  //   } else if (rating) {
+  //     rate = "INDIFFERENT";
+  //     LibraryViewModel().rateAlbumPlaylist(id: id, rating: rate);
+  //   } else {
+  //     rate = "LIKE";
+  //     LibraryViewModel().rateAlbumPlaylist(id: id, rating: rate);
+  //   }
+  //   return !rating;
+  // }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Iconsax.heart),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(IconlyBroken.download),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(IconlyBroken.more_square),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
-        ],
-      ),
-    );
+    return ValueListenableBuilder<bool>(
+        valueListenable: context.watch<AAPViewModel>().isAPLikedNotifier,
+        builder: (context, isAPLiked, _) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                LikeButton(
+                  isLiked: isAPLiked,
+                  likeBuilder: (_) {
+                    return isAPLiked
+                        ? const Icon(
+                            Iconsax.heart5,
+                            color: Colors.redAccent,
+                          )
+                        : const Icon(
+                            Iconsax.heart4,
+                            color: Colors.white,
+                          );
+                  },
+                  onTap: (_) {
+                    return Provider.of<AAPViewModel>(context, listen: false).changeIsAPLiked(isAPLiked: isAPLiked, id: id);
+                  },
+                ),
+                // IconButton(
+                //   onPressed: () {},
+                //   icon: const Icon(IconlyBroken.download),
+                //   padding: EdgeInsets.zero,
+                //   constraints: const BoxConstraints(),
+                // ),
+                IconButton(
+                  onPressed: () {},
+                  icon: const Icon(IconlyBroken.more_square),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              ],
+            ),
+          );
+        });
   }
 }
 
