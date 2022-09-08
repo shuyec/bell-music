@@ -72,100 +72,103 @@ class LibraryContent extends StatelessWidget {
                   return const Loading();
                 } else if (snapshot.hasData) {
                   if (data != null && data.isNotEmpty) {
-                    child = ListView.builder(
-                      padding: EdgeInsets.zero,
-                      scrollDirection: Axis.vertical,
-                      itemCount: data.length,
-                      itemBuilder: (context, index) {
-                        if (type == "libraryPlaylists") {
-                          index = index + 1;
-                        }
-                        while (index < data.length) {
-                          const TextStyle titleStyle = TextStyle(fontWeight: FontWeight.bold);
-                          List thumbnails = data[index]["thumbnails"];
-                          String thumbnail = thumbnails[thumbnails.length - 1]["url"];
-                          late String title;
-                          if (type == "libraryArtists" || type == "librarySubscriptions") {
-                            title = data[index]["artist"];
-                          } else {
-                            title = data[index]["title"];
+                    child = Padding(
+                      padding: const EdgeInsets.only(left: 10, right: 10),
+                      child: ListView.builder(
+                        padding: EdgeInsets.zero,
+                        scrollDirection: Axis.vertical,
+                        itemCount: data.length,
+                        itemBuilder: (context, index) {
+                          if (type == "libraryPlaylists") {
+                            index = index + 1;
                           }
+                          while (index < data.length) {
+                            const TextStyle titleStyle = TextStyle(fontWeight: FontWeight.bold);
+                            List thumbnails = data[index]["thumbnails"];
+                            String thumbnail = thumbnails[thumbnails.length - 1]["url"];
+                            late String title;
+                            if (type == "libraryArtists" || type == "librarySubscriptions") {
+                              title = data[index]["artist"];
+                            } else {
+                              title = data[index]["title"];
+                            }
 
-                          if (data[index]["artists"] != null) {
-                            artists = getArtists(data[index]["artists"]);
-                          }
-                          // Generate subtitle
-                          late String subtitle;
-                          switch (type) {
-                            case "libraryPlaylists":
-                              {
-                                subtitle = data[index]["description"];
-                              }
-                              break;
-                            case "libraryAlbums":
-                              {
-                                String type = data[index]["type"];
-                                String year = data[index]["year"];
-                                String artists = getArtists(data[index]["artists"]);
-                                subtitle = "$type • $artists • $year";
-                              }
-                              break;
-                            case "librarySongs":
-                              {
-                                String artists = getArtists(data[index]["artists"]);
-                                String duration = data[index]["duration"];
-                                String album = data[index]["album"]["name"];
-                                subtitle = "$duration • $artists • $album";
-                              }
-                              break;
-                            case "libraryArtists":
-                            case "librarySubscriptions":
-                              {
-                                String subs = data[index]["subscribers"];
-                                subtitle = "$subs subscribers";
-                              }
-                              break;
-                            default:
-                              {
-                                subtitle = "";
-                              }
-                              break;
-                          }
+                            if (data[index]["artists"] != null) {
+                              artists = getArtists(data[index]["artists"]);
+                            }
+                            // Generate subtitle
+                            late String subtitle;
+                            switch (type) {
+                              case "libraryPlaylists":
+                                {
+                                  subtitle = data[index]["description"];
+                                }
+                                break;
+                              case "libraryAlbums":
+                                {
+                                  String type = data[index]["type"];
+                                  String year = data[index]["year"];
+                                  String artists = getArtists(data[index]["artists"]);
+                                  subtitle = "$type • $artists • $year";
+                                }
+                                break;
+                              case "librarySongs":
+                                {
+                                  String artists = getArtists(data[index]["artists"]);
+                                  String duration = data[index]["duration"];
+                                  String album = data[index]["album"]["name"];
+                                  subtitle = "$duration • $artists • $album";
+                                }
+                                break;
+                              case "libraryArtists":
+                              case "librarySubscriptions":
+                                {
+                                  String subs = data[index]["subscribers"];
+                                  subtitle = "$subs subscribers";
+                                }
+                                break;
+                              default:
+                                {
+                                  subtitle = "";
+                                }
+                                break;
+                            }
 
-                          return ListTile(
-                            contentPadding: const EdgeInsets.all(5),
-                            onTap: (() async {
-                              await screenNavigator.visitPage(context: context, mediaData: data[index], type: navigatorType, artist: artists);
-                            }),
-                            title: Text(
-                              title,
-                              style: titleStyle,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            subtitle: Text(
-                              subtitle,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            leading: data[index]["isAvailable"] == false
-                                ? const Icon(
-                                    Icons.error,
-                                    color: Colors.grey,
-                                    size: 15,
-                                  )
-                                : type == "libraryArtists" || type == "librarySubscriptions"
-                                    ? CircleAvatar(
-                                        radius: 30,
-                                        backgroundImage: NetworkImage(thumbnail),
-                                      )
-                                    : ClipRRect(
-                                        borderRadius: const BorderRadius.all(Radius.circular(6.0)),
-                                        child: SizedBox(height: 60, width: 60, child: Image.network(thumbnail)),
-                                      ),
-                            enabled: data[index]["isAvailable"] == false ? false : true,
-                          );
-                        }
-                        return const SizedBox();
-                      },
+                            return ListTile(
+                              contentPadding: const EdgeInsets.all(5),
+                              onTap: (() async {
+                                await screenNavigator.visitPage(context: context, mediaData: data[index], type: navigatorType, artist: artists);
+                              }),
+                              title: Text(
+                                title,
+                                style: titleStyle,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              subtitle: Text(
+                                subtitle,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              leading: data[index]["isAvailable"] == false
+                                  ? const Icon(
+                                      Icons.error,
+                                      color: Colors.grey,
+                                      size: 15,
+                                    )
+                                  : type == "libraryArtists" || type == "librarySubscriptions"
+                                      ? CircleAvatar(
+                                          radius: 30,
+                                          backgroundImage: NetworkImage(thumbnail),
+                                        )
+                                      : ClipRRect(
+                                          borderRadius: const BorderRadius.all(Radius.circular(6.0)),
+                                          child: SizedBox(height: 60, width: 60, child: Image.network(thumbnail)),
+                                        ),
+                              enabled: data[index]["isAvailable"] == false ? false : true,
+                            );
+                          }
+                          return const SizedBox();
+                        },
+                      ),
                     );
                   } else {
                     child = Center(
