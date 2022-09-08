@@ -229,10 +229,15 @@ class MediaInfo extends StatelessWidget {
                               data["type"] + " • " + data["trackCount"].toString() + " songs • " + data["year"] + " • " + data["duration"],
                               style: infoStyle,
                             )
-                          : Text(
-                              "Playlist • ${data["trackCount"].toString()} songs • ${data["year"]} • ${data["duration"]}",
-                              style: infoStyle,
-                            ),
+                          : data["year"] == null
+                              ? Text(
+                                  "Playlist • ${data["trackCount"].toString()} songs • ${data["duration"]}",
+                                  style: infoStyle,
+                                )
+                              : Text(
+                                  "Playlist • ${data["trackCount"].toString()} songs • ${data["year"]} • ${data["duration"]}",
+                                  style: infoStyle,
+                                ),
         ],
       ),
     );
