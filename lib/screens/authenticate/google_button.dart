@@ -22,8 +22,8 @@ class GoogleSignInButtonState extends State<GoogleSignInButton> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: _isSigningIn
-          ? const SpinKitWave(
-              color: Color(0xFFBCCFEF),
+          ? const SpinKitChasingDots(
+              color: Colors.white,
               size: 40.0,
             )
           : OutlinedButton(
