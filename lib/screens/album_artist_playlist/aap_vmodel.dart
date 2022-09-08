@@ -69,11 +69,12 @@ class AAPViewModel extends ChangeNotifier {
           if (type == "album" || type == "playlist") {
             bool isAPInLibrary = await LibraryViewModel().checkIfInLibrary(browseId);
             isAPLikedNotifier.value = isAPInLibrary;
+            data["rating"] = isAPLikedNotifier.value;
           } else {
             isAPLikedNotifier.value = true;
           }
           // TODO: better solution
-          data["rating"] = isAPLikedNotifier.value;
+
           return data;
         }
       } catch (e) {
