@@ -21,6 +21,7 @@ song_post_args.add_argument("videoId", type=str)
 
 album_post_args = reqparse.RequestParser()
 album_post_args.add_argument("browseId", type=str)
+album_post_args.add_argument("rating", type=str)
 
 artist_post_args = reqparse.RequestParser()
 artist_post_args.add_argument("browseId", type=str)
@@ -84,20 +85,35 @@ class Media(Resource):
     
 class Album(Resource):
     def post(self):
-        browse_id = album_post_args.parse_args()["browseId"]
+        arguments = album_post_args.parse_args()
+        browse_id = arguments["browseId"]
+        rating = arguments["rating"]
         if browse_id == None:
             abort(400, message="Browse Id needed")
-        album = ytmusic.get_album(browse_id)
-        response = make_response(album, 200)
+        if rating == None:
+            album = ytmusic.get_album(browse_id)
+            response = make_response(album, 200)
+        elif rating == "LIKE" or rating == "DISLIKE" or rating == "INDIFFERENT":
+            response = ytmusic.rate_playlist(browse_id, rating)
+        else:
+            abort(400, message="Rate value invalid")
         return response
 
 class Playlist(Resource):
     def post(self):
-        browse_id = album_post_args.parse_args()["browseId"]
+        arguments = album_post_args.parse_args()
+        browse_id = arguments["browseId"]
+        rating = arguments["rating"]
+        print(rating)
         if browse_id == None:
             abort(400, message="Browse Id needed")
-        playlist = ytmusic.get_playlist(browse_id)
-        response = make_response(playlist, 200)
+        if rating == None:
+            playlist = ytmusic.get_playlist(browse_id)
+            response = make_response(playlist, 200)
+        elif rating == "LIKE" or rating == "DISLIKE" or rating == "INDIFFERENT":
+            response = ytmusic.rate_playlist(browse_id, rating)
+        else:
+            abort(400, message="Rating value invalid")
         return response
 
 class Home(Resource):
