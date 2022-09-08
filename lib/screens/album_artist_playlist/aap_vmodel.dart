@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 class AAPViewModel extends ChangeNotifier {
   final isAPLikedNotifier = ValueNotifier<bool>(false);
 
-  Future<bool?> changeIsAPLiked({required bool isAPLiked, required String id}) async {
+  Future<bool> changeIsAPLiked({required bool isAPLiked, required String id, required String privacy}) async {
     late String rate;
-    if (id == "LM") {
+    if (id == "LM" || privacy == "PRIVATE") {
       return true;
     } else if (isAPLiked) {
       rate = "INDIFFERENT";
@@ -67,13 +67,13 @@ class AAPViewModel extends ChangeNotifier {
           connectionSuccessful = true;
           Map data = getResponse.data;
           if (type == "album" || type == "playlist") {
-            bool? isAPInLibrary = await LibraryViewModel().checkIfInLibrary(browseId);
-            data["rating"] = isAPInLibrary;
-            print("DEBUG isAPInLibrary GETAPP $isAPInLibrary");
-            isAPLikedNotifier.value = isAPInLibrary as bool;
+            bool isAPInLibrary = await LibraryViewModel().checkIfInLibrary(browseId);
+            isAPLikedNotifier.value = isAPInLibrary;
           } else {
             isAPLikedNotifier.value = true;
           }
+          // TODO: better solution
+          data["rating"] = isAPLikedNotifier.value;
           return data;
         }
       } catch (e) {

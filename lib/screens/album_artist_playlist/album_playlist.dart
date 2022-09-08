@@ -60,15 +60,20 @@ class _AlbumPlaylistState extends State<AlbumPlaylist> {
             return const Loading();
           } else if (snapshot.hasData) {
             if (data != null && data.isNotEmpty) {
+              late bool rating;
               late String id;
+              String privacy = "PUBLIC";
               if (type == "album") {
                 id = data["audioPlaylistId"];
+                rating = data["rating"];
               } else if (type == "playlist") {
+                privacy = data["privacy"];
                 id = data["id"];
+                rating = data["rating"];
               } else {
                 id = data["id"];
+                rating = true;
               }
-
               List tracks = data["tracks"];
               List thumbnails = data["thumbnails"];
               child = ListView(
@@ -85,7 +90,7 @@ class _AlbumPlaylistState extends State<AlbumPlaylist> {
                           const SizedBox(height: 90),
                           Thumbnail(thumbnails: thumbnails),
                           MediaInfo(data: data, artist: artist),
-                          Buttons(id: id),
+                          privacy == "PRIVATE" ? Buttons(id: id, rating: rating, privacy: privacy) : Buttons(id: id, rating: rating),
                           PlayShuffleButtons(tracks: tracks),
                           Tracks(
                             tracks: tracks,
@@ -235,30 +240,19 @@ class MediaInfo extends StatelessWidget {
 }
 
 class Buttons extends StatelessWidget {
-  const Buttons({Key? key, required this.id}) : super(key: key);
+  const Buttons({Key? key, required this.id, required this.rating, this.privacy = "PUBLIC"}) : super(key: key);
   final String id;
-
-  // Future<bool?> onLikeButtonTapped(bool rating) async {
-  //   late String rate;
-  //   if (id == "LM") {
-  //     return true;
-  //   } else if (rating) {
-  //     rate = "INDIFFERENT";
-  //     LibraryViewModel().rateAlbumPlaylist(id: id, rating: rate);
-  //   } else {
-  //     rate = "LIKE";
-  //     LibraryViewModel().rateAlbumPlaylist(id: id, rating: rate);
-  //   }
-  //   return !rating;
-  // }
-
+  final bool rating;
+  final String privacy;
   @override
   Widget build(BuildContext context) {
+    bool rating2 = rating;
     return ValueListenableBuilder<bool>(
-        valueListenable: context.watch<AAPViewModel>().isAPLikedNotifier,
+        valueListenable: Provider.of<AAPViewModel>(context, listen: true).isAPLikedNotifier,
         builder: (context, isAPLiked, _) {
+          isAPLiked = rating2;
           return Padding(
-            padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+            padding: const EdgeInsets.only(top: 10, bottom: 10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -275,8 +269,11 @@ class Buttons extends StatelessWidget {
                             color: Colors.white,
                           );
                   },
-                  onTap: (_) {
-                    return Provider.of<AAPViewModel>(context, listen: false).changeIsAPLiked(isAPLiked: isAPLiked, id: id);
+                  onTap: (_) async {
+                    isAPLiked =
+                        await Provider.of<AAPViewModel>(context, listen: false).changeIsAPLiked(isAPLiked: isAPLiked, id: id, privacy: privacy);
+                    rating2 = isAPLiked;
+                    return rating2;
                   },
                 ),
                 // IconButton(

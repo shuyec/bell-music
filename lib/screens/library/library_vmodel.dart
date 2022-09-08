@@ -56,7 +56,7 @@ class LibraryViewModel {
     return null;
   }
 
-  Future<bool?> checkIfInLibrary(String id) async {
+  Future<bool> checkIfInLibrary(String id) async {
     if (id.substring(0, 2) == "PL") {
       List? libraryPlaylists = await getLibraryPlaylists();
       if (libraryPlaylists != null) {
@@ -78,7 +78,7 @@ class LibraryViewModel {
       }
       return false;
     }
-    return null;
+    return false;
   }
 
   Future getResponseData({required String type}) async {
