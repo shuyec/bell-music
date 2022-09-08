@@ -51,7 +51,9 @@ dependencies:
   # Icons
   iconly: ^1.0.1
   iconsax: ^0.0.8
-  # Drop shadow FORSE DA CAMBIARE
+  # Like button
+  like_button: ^2.0.4
+  # Drop shadow NOT USED YET
   drop_shadow: ^0.0.1+4
   # Overflowed scrolling text
   marquee: ^2.2.3
