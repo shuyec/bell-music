@@ -2,6 +2,7 @@ from ytmusicapi import YTMusic
 from flask import Flask, make_response, request
 from flask_restful import Api, Resource, reqparse, abort
 import youtube_dl
+import os
 
 app = Flask(__name__)
 api = Api(app)
@@ -9,8 +10,10 @@ app.config['JSON_SORT_KEYS'] = False
 
 
 # YTMusicApi setup
-ytmusic = YTMusic('lib/python/headers_auth.json')
-# ytmusic = YTMusic()
+if os.path.exists('lib/python/headers_auth.json'):
+    ytmusic = YTMusic('lib/python/headers_auth.json')
+else:
+    ytmusic = YTMusic()
 
 # FLASK RESTFUL API
 search_post_args = reqparse.RequestParser()
