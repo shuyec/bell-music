@@ -107,7 +107,7 @@ class AccountState extends State<Account> {
                           _isSigningOut = true;
                         });
 
-                        await Authentication().signOut(context: context);
+                        await Provider.of<Authentication>(context, listen: false).signOut(context: context);
                         mediaVMProvider.myDispose();
 
                         // setState(() {
