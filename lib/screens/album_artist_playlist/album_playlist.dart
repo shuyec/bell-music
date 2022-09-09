@@ -2,6 +2,7 @@ import 'package:bell/general_functions.dart';
 import 'package:bell/screen_navigator.dart';
 import 'package:bell/screens/album_artist_playlist/aap_vmodel.dart';
 import 'package:bell/screens/library/library_vmodel.dart';
+import 'package:bell/screens/media/media_vmodel.dart';
 import 'package:bell/services/auth.dart';
 import 'package:bell/widgets/custom_marquee.dart';
 import 'package:bell/widgets/loading.dart';
@@ -157,17 +158,26 @@ class Thumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10.0),
-      child: thumbnails.length > 1
-          ? Image.network(
-              thumbnails[thumbnails.length - 2]["url"],
-              width: 160,
-            )
-          : Image.network(
-              thumbnails[thumbnails.length - 1]["url"],
-              width: 160,
-            ),
+    return Stack(
+      alignment: Alignment.topCenter,
+      children: [
+        Container(
+          color: Colors.transparent,
+          height: 150,
+        ),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(10.0),
+          child: thumbnails.length > 1
+              ? Image.network(
+                  thumbnails[thumbnails.length - 2]["url"],
+                  width: 150,
+                )
+              : Image.network(
+                  thumbnails[thumbnails.length - 1]["url"],
+                  width: 150,
+                ),
+        ),
+      ],
     );
   }
 }
@@ -197,18 +207,29 @@ class MediaInfo extends StatelessWidget {
     } else {
       artists = "";
     }
+    EdgeInsets padding = const EdgeInsets.only(left: 10, right: 10);
+    double marqueeWidth = MediaQuery.of(context).size.width - padding.left - padding.right;
     return Padding(
-      padding: const EdgeInsets.only(left: 10, right: 10),
+      padding: padding,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // title
           CustomMarquee(
             text: data["title"] == "Songs" ? "$artists's songs" : data["title"],
             style: titleStyle,
             height: 40.0,
+            width: marqueeWidth,
           ),
           // artists
-          artists.isNotEmpty ? CustomMarquee(text: artists, style: artistsStyle, height: 30) : const Text(""),
+          artists.isNotEmpty
+              ? CustomMarquee(
+                  text: artists,
+                  style: artistsStyle,
+                  height: 30,
+                  width: marqueeWidth,
+                )
+              : const SizedBox(),
           // info
           data["title"] == "Songs"
               ? Text(
@@ -290,7 +311,7 @@ class Buttons extends StatelessWidget {
                             onPressed: null,
                             icon: Icon(
                               Iconsax.heart_slash,
-                              color: Colors.white,
+                              color: Colors.grey,
                             ),
                           ),
                     // IconButton(
@@ -426,73 +447,114 @@ class _TracksState extends State<Tracks> {
   @override
   Widget build(BuildContext context) {
     return widget.tracks.isEmpty
-        ? const Expanded(child: Text("Here's you'll see your liked songs"))
-        : ListView.builder(
-            padding: EdgeInsets.zero,
-            physics: const NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            itemCount: widget.tracks.length,
-            itemBuilder: (context, index) {
-              String trackArtists = getArtists(widget.tracks[index]["artists"]);
-              return ListTile(
-                leading: widget.playlistTitle == "Songs" || widget.playlistTitle == "Videos" || widget.playlistTitle == "Your Likes"
-                    ? ClipRRect(
-                        borderRadius: const BorderRadius.all(Radius.circular(6.0)),
-                        child: SizedBox(height: 60, width: 60, child: Image.network(widget.tracks[index]["thumbnails"][0]["url"])),
-                      )
-                    : Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                        widget.tracks[index]["videoId"] == null
-                            ? const Icon(
-                                Icons.error,
-                                color: Colors.grey,
-                                size: 15,
-                              )
-                            : Text(
-                                (index + 1).toString().padLeft(2, '0'),
-                                style: const TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                      ]),
-                minLeadingWidth: 10,
-                title: Text(
-                  widget.tracks[index]["title"].trim(),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                subtitle: Row(
-                  children: [
-                    widget.tracks[index]["isExplicit"] == true
-                        ? Row(
-                            children: const [
-                              Icon(
-                                Icons.explicit_rounded,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                              Text(" "),
-                            ],
+        ? const Expanded(child: Text("Here you'll see your liked songs"))
+        : ValueListenableBuilder<bool>(
+            valueListenable: context.watch<Authentication>().areHeadersPresentNotifier,
+            builder: (context, areHeadersPresent, _) {
+              return ListView.builder(
+                padding: EdgeInsets.zero,
+                physics: const NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemCount: widget.tracks.length,
+                itemBuilder: (context, index) {
+                  String trackArtists = getArtists(widget.tracks[index]["artists"]);
+                  String? videoId = widget.tracks[index]["videoId"];
+                  bool isMediaLiked = widget.tracks[index]["likeStatus"] == "LIKE";
+                  return ListTile(
+                    leading: widget.playlistTitle == "Songs" || widget.playlistTitle == "Videos" || widget.playlistTitle == "Your Likes"
+                        ? ClipRRect(
+                            borderRadius: const BorderRadius.all(Radius.circular(6.0)),
+                            child: SizedBox(height: 60, width: 60, child: Image.network(widget.tracks[index]["thumbnails"][0]["url"])),
                           )
-                        : const Text(""),
-                    Flexible(
-                      fit: FlexFit.loose,
-                      child: widget.tracks[index]["duration"] != null
-                          ? Text(
-                              "${widget.tracks[index]["duration"]} • $trackArtists",
-                              overflow: TextOverflow.ellipsis,
-                            )
-                          : Text(
-                              trackArtists,
-                              overflow: TextOverflow.ellipsis,
+                        : Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                            widget.tracks[index]["videoId"] == null
+                                ? const Icon(
+                                    Icons.error,
+                                    color: Colors.grey,
+                                    size: 15,
+                                  )
+                                : Text(
+                                    (index + 1).toString().padLeft(2, '0'),
+                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                          ]),
+                    minLeadingWidth: 10,
+                    trailing: areHeadersPresent && videoId != null
+                        ? FittedBox(
+                            child: LikeButton(
+                              isLiked: isMediaLiked,
+                              likeBuilder: (_) {
+                                return isMediaLiked
+                                    ? const Icon(
+                                        Iconsax.heart5,
+                                        color: Colors.redAccent,
+                                      )
+                                    : const Icon(
+                                        Iconsax.heart4,
+                                        color: Colors.white,
+                                      );
+                              },
+                              onTap: (_) async {
+                                final mediaVMProvider = Provider.of<MediaViewModel>(context, listen: false);
+                                late String rating;
+                                if (isMediaLiked) {
+                                  rating = "INDIFFERENT";
+                                } else {
+                                  rating = "LIKE";
+                                }
+                                isMediaLiked = await mediaVMProvider.rateMedia(videoId: videoId, rating: rating);
+                                return isMediaLiked;
+                              },
                             ),
+                          )
+                        : const IconButton(
+                            onPressed: null,
+                            icon: Icon(
+                              Iconsax.heart_slash,
+                              color: Colors.grey,
+                            ),
+                          ),
+                    title: Text(
+                      widget.tracks[index]["title"].trim(),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ],
-                ),
-                onTap: () async {
-                  await _screenNavigator.visitPage(context: context, mediaData: widget.tracks[index], type: "song", queue: widget.tracks);
+                    subtitle: Row(
+                      children: [
+                        widget.tracks[index]["isExplicit"] == true
+                            ? Row(
+                                children: const [
+                                  Icon(
+                                    Icons.explicit_rounded,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                  Text(" "),
+                                ],
+                              )
+                            : const Text(""),
+                        Flexible(
+                          fit: FlexFit.loose,
+                          child: widget.tracks[index]["duration"] != null
+                              ? Text(
+                                  "${widget.tracks[index]["duration"]} • $trackArtists",
+                                  overflow: TextOverflow.ellipsis,
+                                )
+                              : Text(
+                                  trackArtists,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                        ),
+                      ],
+                    ),
+                    onTap: () async {
+                      await _screenNavigator.visitPage(context: context, mediaData: widget.tracks[index], type: "song", queue: widget.tracks);
+                    },
+                    enabled: widget.tracks[index]["videoId"] == null ? false : true,
+                  );
                 },
-                enabled: widget.tracks[index]["videoId"] == null ? false : true,
               );
-            },
-          );
+            });
   }
 }
