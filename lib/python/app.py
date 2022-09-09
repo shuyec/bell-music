@@ -16,8 +16,9 @@ ytmusic = YTMusic('lib/python/headers_auth.json')
 search_post_args = reqparse.RequestParser()
 search_post_args.add_argument("search", type=str)
 
-song_post_args = reqparse.RequestParser()
-song_post_args.add_argument("videoId", type=str)
+media_post_args = reqparse.RequestParser()
+media_post_args.add_argument("videoId", type=str)
+media_post_args.add_argument("rating", type=str)
 
 album_post_args = reqparse.RequestParser()
 album_post_args.add_argument("browseId", type=str)
@@ -56,31 +57,38 @@ class Search(Resource):
 # TODO: pagination
 class Media(Resource):
     def post(self):
-        video_id = song_post_args.parse_args()["videoId"]
+        arguments = media_post_args.parse_args()
+        video_id = arguments["videoId"]
+        rating = arguments["rating"]
         if video_id == None:
             abort(400, message="Video Id needed")
-        media = ytmusic.get_song(video_id)
-        if media['playabilityStatus']['status'] == 'ERROR':
-            abort(404, message="This video does not exist")
-        video_url = "https://www.youtube.com/watch?v=" + video_id
-        ydl_opts = {
-            'format': 'bestaudio',
-        }
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(
-                video_url, download=False)
-        audio_url = info['formats'][0]['url']
-        if "manifest" in audio_url:
-            audio_url = info['formats'][0]['fragment_base_url']
-        media_details = media['videoDetails'] 
-        data = {
-            "videoId": media_details["videoId"],
-            "title": media_details["title"],
-            "author": media_details["author"],
-            "thumbnail": media_details["thumbnail"]["thumbnails"][len(media_details["thumbnail"]["thumbnails"])-1]["url"]
-        }
-        data.update({"audioUrl": audio_url})
-        response = make_response(data, 200)
+        if rating == None:
+            media = ytmusic.get_song(video_id)
+            if media['playabilityStatus']['status'] == 'ERROR':
+                abort(404, message="This video does not exist")
+            video_url = "https://www.youtube.com/watch?v=" + video_id
+            ydl_opts = {
+                'format': 'bestaudio',
+            }
+            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(
+                    video_url, download=False)
+            audio_url = info['formats'][0]['url']
+            if "manifest" in audio_url:
+                audio_url = info['formats'][0]['fragment_base_url']
+            media_details = media['videoDetails'] 
+            data = {
+                "videoId": media_details["videoId"],
+                "title": media_details["title"],
+                "author": media_details["author"],
+                "thumbnail": media_details["thumbnail"]["thumbnails"][len(media_details["thumbnail"]["thumbnails"])-1]["url"]
+            }
+            data.update({"audioUrl": audio_url})
+            response = make_response(data, 200)
+        elif rating == "LIKE" or rating == "DISLIKE" or rating == "INDIFFERENT":
+            response = ytmusic.rate_song(video_id, rating)
+        else:
+            abort(400, message="Rate value invalid")
         return response
     
 class Album(Resource):
