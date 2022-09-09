@@ -140,7 +140,7 @@ class _SearchBarState extends State<SearchBar> {
           hintStyle: const TextStyle(
             color: Colors.grey,
           ),
-          prefixIcon: isTextFieldFocused
+          prefixIcon: isTextFieldFocused || !isTextFieldEmpty
               ? IconButton(
                   onPressed: () {
                     searchFocus.unfocus();
