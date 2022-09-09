@@ -55,23 +55,26 @@ class _ArtistState extends State<Artist> {
                       alignment: Alignment.topCenter,
                       children: [
                         Thumbnail(thumbnails: thumbnails),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Container(
-                              height: 160,
-                              color: Colors.transparent,
-                            ),
-                            ArtistName(data: data),
-                            ArtistWorks(data: data),
-                            data["description"] != null
-                                ? AboutArtist(
-                                    description: data["description"],
-                                    views: data["views"],
-                                  )
-                                : const SizedBox(),
-                          ],
+                        Padding(
+                          padding: const EdgeInsets.all(5),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Container(
+                                height: 160,
+                                color: Colors.transparent,
+                              ),
+                              ArtistName(data: data),
+                              ArtistWorks(data: data),
+                              data["description"] != null
+                                  ? AboutArtist(
+                                      description: data["description"],
+                                      views: data["views"],
+                                    )
+                                  : const SizedBox(),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -97,21 +100,18 @@ class ArtistName extends StatelessWidget {
   final Map data;
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(10.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Text(
-            "ARTIST",
-            style: TextStyle(fontSize: 15),
-          ),
-          Text(
-            data["name"],
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
-          ),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Text(
+          "ARTIST",
+          style: TextStyle(fontSize: 15),
+        ),
+        Text(
+          data["name"],
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
+        ),
+      ],
     );
   }
 }
@@ -229,65 +229,62 @@ class Videos extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double size = 140;
-    return Padding(
-      padding: const EdgeInsets.only(left: 15, right: 15),
-      child: SizedBox(
-        height: size,
-        width: MediaQuery.of(context).size.width,
-        child: ListView.builder(
-          padding: EdgeInsets.zero,
-          physics: const BouncingScrollPhysics(),
-          itemCount: data[category]["results"].length,
-          shrinkWrap: true,
-          scrollDirection: Axis.horizontal,
-          itemBuilder: (context, index) {
-            Map currentData = data[category]["results"][index];
-            List thumbnails = currentData["thumbnails"];
-            String thumbnail = thumbnails[thumbnails.length - 1]["url"];
-            String title = currentData["title"];
-            String views = currentData["views"];
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(0, 0, 8, 0),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(15.0),
-                onTap: (() async {
-                  await _screenNavigator.visitPage(context: context, mediaData: currentData, type: "videos", artist: data["name"]);
-                }),
-                child: SizedBox(
-                  width: size,
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        width: size,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(15.0),
-                          child: Image.network(thumbnail),
+    return SizedBox(
+      height: size,
+      width: MediaQuery.of(context).size.width,
+      child: ListView.builder(
+        padding: EdgeInsets.zero,
+        physics: const BouncingScrollPhysics(),
+        itemCount: data[category]["results"].length,
+        shrinkWrap: true,
+        scrollDirection: Axis.horizontal,
+        itemBuilder: (context, index) {
+          Map currentData = data[category]["results"][index];
+          List thumbnails = currentData["thumbnails"];
+          String thumbnail = thumbnails[thumbnails.length - 1]["url"];
+          String title = currentData["title"];
+          String views = currentData["views"];
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(15.0),
+              onTap: (() async {
+                await _screenNavigator.visitPage(context: context, mediaData: currentData, type: "videos", artist: data["name"]);
+              }),
+              child: SizedBox(
+                width: size,
+                child: Column(
+                  children: [
+                    SizedBox(
+                      width: size,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(15.0),
+                        child: Image.network(thumbnail),
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
                         ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            title,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 2,
-                          ),
-                          Text(
-                            "$views views",
-                            style: const TextStyle(fontSize: 15),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        Text(
+                          "$views views",
+                          style: const TextStyle(fontSize: 15),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -300,66 +297,63 @@ class AlbumsSingles extends StatelessWidget {
   final String category;
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(15, 0, 15, 0),
-      child: SizedBox(
-        height: 180,
-        width: MediaQuery.of(context).size.width,
-        child: ListView.builder(
-          padding: EdgeInsets.zero,
-          physics: const BouncingScrollPhysics(),
-          itemCount: data[category]["results"].length,
-          shrinkWrap: true,
-          scrollDirection: Axis.horizontal,
-          itemBuilder: (context, index) {
-            Map currentData = data[category]["results"][index];
-            List thumbnails = currentData["thumbnails"];
-            String thumbnail = thumbnails[thumbnails.length - 1]["url"];
-            String title = currentData["title"];
-            String year = currentData["year"];
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(0, 0, 8, 0),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(15.0),
-                onTap: (() async {
-                  await _screenNavigator.visitPage(context: context, mediaData: currentData, type: "album", artist: data["name"]);
-                }),
-                child: SizedBox(
-                  width: 130,
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        height: 130,
-                        width: 130,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(15.0),
-                          child: Image.network(thumbnail),
+    return SizedBox(
+      height: 180,
+      width: MediaQuery.of(context).size.width,
+      child: ListView.builder(
+        padding: EdgeInsets.zero,
+        physics: const BouncingScrollPhysics(),
+        itemCount: data[category]["results"].length,
+        shrinkWrap: true,
+        scrollDirection: Axis.horizontal,
+        itemBuilder: (context, index) {
+          Map currentData = data[category]["results"][index];
+          List thumbnails = currentData["thumbnails"];
+          String thumbnail = thumbnails[thumbnails.length - 1]["url"];
+          String title = currentData["title"];
+          String year = currentData["year"];
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(15.0),
+              onTap: (() async {
+                await _screenNavigator.visitPage(context: context, mediaData: currentData, type: "album", artist: data["name"]);
+              }),
+              child: SizedBox(
+                width: 130,
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 130,
+                      width: 130,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(15.0),
+                        child: Image.network(thumbnail),
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            title,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
-                          Text(
-                            year,
-                            style: const TextStyle(fontSize: 15),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        Text(
+                          year,
+                          style: const TextStyle(fontSize: 15),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -397,9 +391,6 @@ class Songs extends StatelessWidget {
               child: SizedBox(height: 60, width: 60, child: Image.network(thumbnail)),
             ),
             onTap: (() async {
-              // Map? songsPlaylist = await AAPViewModel().getAAPData(browseId: data["songs"]["browseId"], type: "playlist");
-              // List queue = songsPlaylist!["tracks"];
-              // await _screenNavigator.visitPage(context: context, mediaData: currentData, type: "song", queue: queue);
               await _screenNavigator.visitPage(context: context, mediaData: currentData, type: "song");
             }),
           );
@@ -429,7 +420,7 @@ class Related extends StatelessWidget {
           String title = currentData["title"];
           String subs = currentData["subscribers"];
           return Padding(
-            padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+            padding: const EdgeInsets.only(left: 8, right: 8),
             child: InkWell(
               borderRadius: BorderRadius.circular(15.0),
               onTap: (() {
@@ -482,29 +473,26 @@ class AboutArtist extends StatelessWidget {
       text = "$views\n\n$description";
     }
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-      child: ExpandableNotifier(
-        child: ScrollOnExpand(
-          child: ExpandablePanel(
-            theme: const ExpandableThemeData(
-              tapBodyToExpand: true,
-              tapBodyToCollapse: true,
-              iconColor: Colors.white,
-              expandIcon: IconlyLight.arrow_down_2,
-              collapseIcon: IconlyLight.arrow_up_2,
-            ),
-            header: const Text(
-              "About",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-            ),
-            collapsed: Text(
-              text,
-              maxLines: 6,
-            ),
-            expanded: Text(
-              text,
-            ),
+    return ExpandableNotifier(
+      child: ScrollOnExpand(
+        child: ExpandablePanel(
+          theme: const ExpandableThemeData(
+            tapBodyToExpand: true,
+            tapBodyToCollapse: true,
+            iconColor: Colors.white,
+            expandIcon: IconlyLight.arrow_down_2,
+            collapseIcon: IconlyLight.arrow_up_2,
+          ),
+          header: const Text(
+            "About",
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+          ),
+          collapsed: Text(
+            text,
+            maxLines: 6,
+          ),
+          expanded: Text(
+            text,
           ),
         ),
       ),
