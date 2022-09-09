@@ -1,7 +1,9 @@
 import 'package:bell/general_functions.dart';
 import 'package:bell/just_audio_modified.dart';
+import 'package:bell/screens/library/library_vmodel.dart';
 import 'package:bell/screens/media/audio_metadata.dart';
 import 'package:bell/services/database.dart';
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'notifiers/play_button_notifier.dart';
@@ -21,6 +23,8 @@ class MediaViewModel extends ChangeNotifier {
   final isLoadingNotifier = ValueNotifier<bool>(true);
   final isLoadingTrackNotifier = ValueNotifier<bool>(false);
   final thumbnailUrlNotifier = ValueNotifier<String>("");
+  final isMediaLikedNotifier = ValueNotifier<bool>(false);
+  final currentVideoIdNotifier = ValueNotifier<String>("");
   final emptyQueueNotifier = ValueNotifier<bool>(true);
 
   late int nowPlayingIndex;
@@ -101,6 +105,10 @@ class MediaViewModel extends ChangeNotifier {
 
   void updateIsLoadingTrack(bool isLoading) {
     isLoadingTrackNotifier.value = isLoading;
+  }
+
+  void updateIsMediaLiked(bool isMediaLiked) {
+    isMediaLikedNotifier.value = isMediaLiked;
   }
 
   Future<void> _setInitialPlaylist() async {
@@ -223,6 +231,7 @@ class MediaViewModel extends ChangeNotifier {
         final currentTag = queue[currentTagIndex];
         final String? title = currentTag["title"];
         currentMediaTitleNotifier.value = title ?? '';
+        currentVideoIdNotifier.value = currentTag["videoId"];
         thumbnailUrlNotifier.value = currentTag["thumbnailUrl"] ?? "";
 
         final artists = currentTag["artists"] ?? "";
@@ -313,5 +322,124 @@ class MediaViewModel extends ChangeNotifier {
     final index = _playlist.length - 1;
     if (index < 0) return;
     _playlist.removeAt(index);
+  }
+
+  // API request rate media
+  CancelToken cancelMediaRateToken = CancelToken();
+  Future<bool> rateMedia({required String videoId, required String rating}) async {
+    late Response response;
+    late Response getResponse;
+    String url = "http://10.0.2.2:8000/api/media";
+    bool connectionSuccessful = false;
+
+    Dio dio = Dio();
+    dio.options.contentType = 'application/json; charset=UTF-8';
+    dio.options.headers['Connection'] = 'Keep-Alive';
+    dio.options.headers["Accept"] = "application/json";
+
+    cancelMediaRateToken.cancel();
+    cancelMediaRateToken = CancelToken();
+    while (!connectionSuccessful) {
+      try {
+        response = await dio.post(
+          url,
+          data: {
+            'videoId': videoId,
+            "rating": rating,
+          },
+          options: Options(
+              followRedirects: true,
+              validateStatus: (status) {
+                return status! < 500;
+              }),
+          cancelToken: cancelMediaRateToken,
+        );
+        String resphead = response.headers["location"]![0].toString();
+        getResponse = await dio.post(
+          resphead,
+          data: {
+            'videoId': videoId,
+            "rating": rating,
+          },
+          cancelToken: cancelMediaRateToken,
+        );
+        if (getResponse.statusCode == 200) {
+          connectionSuccessful = true;
+          switch (rating) {
+            case "LIKE":
+              return true;
+            case "DISLIKE":
+            case "INDIFFERENT":
+              return false;
+            default:
+              throw "Rating value invalid";
+          }
+        }
+      } catch (e) {
+        // return Future.error(e.toString());
+      }
+    }
+    return false;
+  }
+
+  // API request get media
+  CancelToken cancelMediaToken = CancelToken();
+  Future<AudioMetadata?> getMedia({required String videoId}) async {
+    late Response response;
+    late Response getResponse;
+    String url = "http://10.0.2.2:8000/api/media";
+    bool connectionSuccessful = false;
+
+    Dio dio = Dio();
+    dio.options.contentType = 'application/json; charset=UTF-8';
+    dio.options.headers['Connection'] = 'Keep-Alive';
+    dio.options.headers["Accept"] = "application/json";
+
+    cancelMediaToken.cancel();
+    cancelMediaToken = CancelToken();
+    while (!connectionSuccessful) {
+      try {
+        response = await dio.post(
+          url,
+          data: {
+            'videoId': videoId,
+          },
+          options: Options(
+              followRedirects: true,
+              validateStatus: (status) {
+                return status! < 500;
+              }),
+          cancelToken: cancelMediaToken,
+        );
+        String resphead = response.headers["location"]![0].toString();
+        getResponse = await dio.post(
+          resphead,
+          data: {
+            'videoId': videoId,
+          },
+          options: Options(
+              followRedirects: true,
+              validateStatus: (status) {
+                return status! < 500;
+              }),
+          cancelToken: cancelMediaToken,
+        );
+        if (getResponse.statusCode == 200) {
+          connectionSuccessful = true;
+          bool isMediaLiked = await LibraryViewModel().checkIfInLibrary(videoId);
+          isMediaLikedNotifier.value = isMediaLiked;
+          Map<String, dynamic> data = getResponse.data;
+          String title = data["title"];
+          String artists = data["author"];
+          String mediaUrl = data["audioUrl"];
+          String thumbnailUrl = data["thumbnail"];
+          return AudioMetadata(
+              title: title, artists: artists, mediaUrl: mediaUrl, thumbnailUrl: thumbnailUrl, videoId: videoId, rating: isMediaLiked);
+        }
+      } catch (e) {
+        // return Future.error(e.toString());
+      }
+    }
+    return null;
   }
 }
