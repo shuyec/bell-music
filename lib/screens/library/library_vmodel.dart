@@ -77,6 +77,21 @@ class LibraryViewModel {
         }
       }
       return false;
+    } else if (id.length == 11) {
+      Map? likedSongsPlaylist = await getLikedSongs();
+      if (likedSongsPlaylist != null) {
+        List likedSongs = likedSongsPlaylist["tracks"];
+        if (likedSongs.isNotEmpty) {
+          for (final song in likedSongs) {
+            if (song["videoId"] == id) {
+              return true;
+            }
+          }
+          return false;
+        } else {
+          return false;
+        }
+      }
     }
     return false;
   }
