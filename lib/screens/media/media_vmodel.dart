@@ -2,6 +2,7 @@ import 'package:bell/general_functions.dart';
 import 'package:bell/just_audio_modified.dart';
 import 'package:bell/screens/library/library_vmodel.dart';
 import 'package:bell/screens/media/audio_metadata.dart';
+import 'package:bell/services/auth.dart';
 import 'package:bell/services/database.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -149,7 +150,7 @@ class MediaViewModel extends ChangeNotifier {
                 "thumbnailUrl": queueSong.thumbnailUrl,
                 "videoId": queueSong.videoId,
               };
-              // print("DEBUG songUrl ${queueSong.mediaUrl}");
+              print("DEBUG songUrl ${queueSong.mediaUrl}");
               queue[i] = queueSongData;
               currentMediaArtists = queueSong.artists;
               thumbnailUrl = queueSong.thumbnailUrl;
@@ -426,8 +427,15 @@ class MediaViewModel extends ChangeNotifier {
         );
         if (getResponse.statusCode == 200) {
           connectionSuccessful = true;
-          bool isMediaLiked = await LibraryViewModel().checkIfInLibrary(videoId);
-          isMediaLikedNotifier.value = isMediaLiked;
+          late bool isMediaLiked;
+          bool areHeadersPresent = await Authentication().checkIfHeadersPresent();
+          if (areHeadersPresent) {
+            isMediaLiked = await LibraryViewModel().checkIfInLibrary(videoId);
+            isMediaLikedNotifier.value = isMediaLiked;
+          } else {
+            isMediaLiked = false;
+            isMediaLikedNotifier.value = false;
+          }
           Map<String, dynamic> data = getResponse.data;
           String title = data["title"];
           String artists = data["author"];

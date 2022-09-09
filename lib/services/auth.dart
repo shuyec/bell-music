@@ -7,13 +7,27 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+// TODO: need a better solution without making this a provider
 class Authentication extends ChangeNotifier {
+  final areHeadersPresentNotifier = ValueNotifier<bool>(false);
   final FirebaseAuth _auth = FirebaseAuth.instance;
   User? user;
 
   late String? token;
 
   Stream<User?> get userStream => _auth.authStateChanges();
+
+  // TODO: change directory if python folders different
+  Future<bool> checkIfHeadersPresent() async {
+    try {
+      await rootBundle.loadString("lib/python/headers_auth.json");
+      areHeadersPresentNotifier.value = true;
+      return true;
+    } catch (e) {
+      areHeadersPresentNotifier.value = false;
+      return false;
+    }
+  }
 
   static Future<FirebaseApp> initializeFirebase({
     required BuildContext context,

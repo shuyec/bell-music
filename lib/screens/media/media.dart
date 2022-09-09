@@ -55,7 +55,7 @@ class _MediaState extends State<Media> {
     final String? userName = _user.displayName;
     const padding = EdgeInsets.all(20.0);
     return StreamProvider<User?>.value(
-      value: Authentication().userStream,
+      value: context.watch<Authentication>().userStream,
       initialData: null,
       child: ValueListenableBuilder<bool>(
           valueListenable: context.watch<MediaViewModel>().emptyQueueNotifier,
@@ -180,50 +180,63 @@ class RateButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<bool>(
-        valueListenable: context.watch<MediaViewModel>().isMediaLikedNotifier,
-        builder: (context, isMediaLiked, _) {
-          return ValueListenableBuilder<String>(
-              valueListenable: context.watch<MediaViewModel>().currentVideoIdNotifier,
-              builder: (context, videoId, _) {
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+        valueListenable: context.watch<Authentication>().areHeadersPresentNotifier,
+        builder: (context, areHeadersPresent, _) {
+          return ValueListenableBuilder<bool>(
+            valueListenable: context.watch<MediaViewModel>().isMediaLikedNotifier,
+            builder: (context, isMediaLiked, _) {
+              return ValueListenableBuilder<String>(
+                  valueListenable: context.watch<MediaViewModel>().currentVideoIdNotifier,
+                  builder: (context, videoId, _) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        CurrentMediaTitle(padding: padding, fontSize: 25),
-                        CurrentMediaArtists(padding: padding, fontSize: 20),
-                      ],
-                    ),
-                    const Spacer(),
-                    LikeButton(
-                      isLiked: isMediaLiked,
-                      likeBuilder: (_) {
-                        return isMediaLiked
-                            ? const Icon(
-                                Iconsax.heart5,
-                                color: Colors.redAccent,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CurrentMediaTitle(padding: padding, fontSize: 25),
+                            CurrentMediaArtists(padding: padding, fontSize: 20),
+                          ],
+                        ),
+                        const Spacer(),
+                        areHeadersPresent
+                            ? LikeButton(
+                                isLiked: isMediaLiked,
+                                likeBuilder: (_) {
+                                  return isMediaLiked
+                                      ? const Icon(
+                                          Iconsax.heart5,
+                                          color: Colors.redAccent,
+                                        )
+                                      : const Icon(
+                                          Iconsax.heart4,
+                                          color: Colors.white,
+                                        );
+                                },
+                                onTap: (_) async {
+                                  final mediaVMProvider = Provider.of<MediaViewModel>(context, listen: false);
+                                  late String rating;
+                                  if (isMediaLiked) {
+                                    rating = "INDIFFERENT";
+                                  } else {
+                                    rating = "LIKE";
+                                  }
+                                  isMediaLiked = await mediaVMProvider.rateMedia(videoId: videoId, rating: rating);
+                                  return isMediaLiked;
+                                },
                               )
-                            : const Icon(
-                                Iconsax.heart4,
-                                color: Colors.white,
-                              );
-                      },
-                      onTap: (_) async {
-                        final mediaVMProvider = Provider.of<MediaViewModel>(context, listen: false);
-                        late String rating;
-                        if (isMediaLiked) {
-                          rating = "INDIFFERENT";
-                        } else {
-                          rating = "LIKE";
-                        }
-                        isMediaLiked = await mediaVMProvider.rateMedia(videoId: videoId, rating: rating);
-                        return isMediaLiked;
-                      },
-                    ),
-                  ],
-                );
-              });
+                            : const IconButton(
+                                onPressed: null,
+                                icon: Icon(
+                                  Iconsax.heart_slash,
+                                  color: Colors.white,
+                                ),
+                              ),
+                      ],
+                    );
+                  });
+            },
+          );
         });
   }
 }

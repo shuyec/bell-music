@@ -2,6 +2,7 @@ import 'package:bell/general_functions.dart';
 import 'package:bell/screen_navigator.dart';
 import 'package:bell/screens/album_artist_playlist/aap_vmodel.dart';
 import 'package:bell/screens/library/library_vmodel.dart';
+import 'package:bell/services/auth.dart';
 import 'package:bell/widgets/custom_marquee.dart';
 import 'package:bell/widgets/loading.dart';
 import 'package:flutter/material.dart';
@@ -253,48 +254,61 @@ class Buttons extends StatelessWidget {
   Widget build(BuildContext context) {
     bool rating2 = rating;
     return ValueListenableBuilder<bool>(
-        valueListenable: Provider.of<AAPViewModel>(context, listen: true).isAPLikedNotifier,
-        builder: (context, isAPLiked, _) {
-          isAPLiked = rating2;
-          return Padding(
-            padding: const EdgeInsets.only(top: 10, bottom: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                LikeButton(
-                  isLiked: isAPLiked,
-                  likeBuilder: (_) {
-                    return isAPLiked
-                        ? const Icon(
-                            Iconsax.heart5,
-                            color: Colors.redAccent,
+        valueListenable: context.watch<Authentication>().areHeadersPresentNotifier,
+        builder: (context, areHeadersPresent, _) {
+          return ValueListenableBuilder<bool>(
+            valueListenable: Provider.of<AAPViewModel>(context, listen: true).isAPLikedNotifier,
+            builder: (context, isAPLiked, _) {
+              isAPLiked = rating2;
+              return Padding(
+                padding: const EdgeInsets.only(top: 10, bottom: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    areHeadersPresent
+                        ? LikeButton(
+                            isLiked: isAPLiked,
+                            likeBuilder: (_) {
+                              return isAPLiked
+                                  ? const Icon(
+                                      Iconsax.heart5,
+                                      color: Colors.redAccent,
+                                    )
+                                  : const Icon(
+                                      Iconsax.heart4,
+                                      color: Colors.white,
+                                    );
+                            },
+                            onTap: (_) async {
+                              isAPLiked = await Provider.of<AAPViewModel>(context, listen: false)
+                                  .changeIsAPLiked(isAPLiked: isAPLiked, id: id, privacy: privacy);
+                              rating2 = isAPLiked;
+                              return rating2;
+                            },
                           )
-                        : const Icon(
-                            Iconsax.heart4,
-                            color: Colors.white,
-                          );
-                  },
-                  onTap: (_) async {
-                    isAPLiked =
-                        await Provider.of<AAPViewModel>(context, listen: false).changeIsAPLiked(isAPLiked: isAPLiked, id: id, privacy: privacy);
-                    rating2 = isAPLiked;
-                    return rating2;
-                  },
+                        : const IconButton(
+                            onPressed: null,
+                            icon: Icon(
+                              Iconsax.heart_slash,
+                              color: Colors.white,
+                            ),
+                          ),
+                    // IconButton(
+                    //   onPressed: () {},
+                    //   icon: const Icon(IconlyBroken.download),
+                    //   padding: EdgeInsets.zero,
+                    //   constraints: const BoxConstraints(),
+                    // ),
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(IconlyBroken.more_square),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
                 ),
-                // IconButton(
-                //   onPressed: () {},
-                //   icon: const Icon(IconlyBroken.download),
-                //   padding: EdgeInsets.zero,
-                //   constraints: const BoxConstraints(),
-                // ),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(IconlyBroken.more_square),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
-            ),
+              );
+            },
           );
         });
   }

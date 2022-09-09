@@ -1,4 +1,5 @@
 import 'package:bell/screens/library/library_vmodel.dart';
+import 'package:bell/services/auth.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
@@ -67,8 +68,16 @@ class AAPViewModel extends ChangeNotifier {
           connectionSuccessful = true;
           Map data = getResponse.data;
           if (type == "album" || type == "playlist") {
-            bool isAPInLibrary = await LibraryViewModel().checkIfInLibrary(browseId);
-            isAPLikedNotifier.value = isAPInLibrary;
+            late bool isAPInLibrary;
+            bool areHeadersPresent = await Authentication().checkIfHeadersPresent();
+            if (areHeadersPresent) {
+              isAPInLibrary = await LibraryViewModel().checkIfInLibrary(browseId);
+              isAPLikedNotifier.value = isAPInLibrary;
+            } else {
+              isAPInLibrary = false;
+              isAPLikedNotifier.value = false;
+            }
+
             data["rating"] = isAPLikedNotifier.value;
           } else {
             isAPLikedNotifier.value = true;
