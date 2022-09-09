@@ -8,6 +8,7 @@ import 'package:bell/screens/library/library_content.dart';
 import 'package:bell/screens/media/media_vmodel.dart';
 import 'package:bell/services/auth.dart';
 import 'package:bell/widgets/cupertino_bottom_bar.dart';
+import 'package:bell/widgets/measure_size.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
@@ -139,7 +140,8 @@ class _MainState extends State<Main> {
       "/artist-albums": (context) => const ArtistAlbums(),
       "/library-content": (context) => const LibraryContent(),
     };
-
+    double paddingLeft = 165;
+    double paddingRight = 80;
     return WillPopScope(
       onWillPop: () async {
         return !await listOfKeys[_tabController.index].currentState!.maybePop();
@@ -182,27 +184,38 @@ class _MainState extends State<Main> {
                             height: 70,
                             child: _tabController.index != 0
                                 ? ListTile(
-                                    title: const ColorFiltered(
-                                      colorFilter: ColorFilter.mode(
+                                    title: ColorFiltered(
+                                      colorFilter: const ColorFilter.mode(
                                         Colors.white,
                                         BlendMode.difference,
                                       ),
-                                      child: CurrentMediaTitle(fontSize: 15, padding: EdgeInsets.only(left: 165, right: 80)),
+                                      child: CurrentMediaTitle(fontSize: 15, padding: EdgeInsets.only(left: paddingLeft, right: paddingRight)),
                                     ),
-                                    subtitle: const ColorFiltered(
-                                      colorFilter: ColorFilter.mode(
+                                    subtitle: ColorFiltered(
+                                      colorFilter: const ColorFilter.mode(
                                         Colors.white,
                                         BlendMode.difference,
                                       ),
-                                      child: CurrentMediaArtists(fontSize: 15, padding: EdgeInsets.only(left: 180, right: 80)),
+                                      child: CurrentMediaArtists(fontSize: 15, padding: EdgeInsets.only(left: paddingLeft, right: paddingRight)),
                                     ),
-                                    leading: const ThumbnailMedia(),
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: const [
-                                        PreviousSongButton(color: Colors.black),
-                                        NextSongButton(color: Colors.black),
-                                      ],
+                                    leading: MeasureSize(
+                                        onChange: (size) {
+                                          setState(() {
+                                            paddingLeft = size.width;
+                                          });
+                                        },
+                                        child: const ThumbnailMedia()),
+                                    trailing: MeasureSize(
+                                      onChange: (size) {
+                                        paddingRight = size.width;
+                                      },
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: const [
+                                          PreviousSongButton(color: Colors.black),
+                                          NextSongButton(color: Colors.black),
+                                        ],
+                                      ),
                                     ),
                                     onTap: (() {
                                       // TODO: MBS bug
