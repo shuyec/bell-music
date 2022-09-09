@@ -83,7 +83,7 @@ class GoogleSignInButtonState extends State<GoogleSignInButton> {
                         style: TextStyle(
                           fontSize: 20,
                           color: Colors.black54,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     )
