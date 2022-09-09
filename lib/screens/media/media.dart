@@ -229,7 +229,7 @@ class RateButtons extends StatelessWidget {
                                 onPressed: null,
                                 icon: Icon(
                                   Iconsax.heart_slash,
-                                  color: Colors.white,
+                                  color: Colors.grey,
                                 ),
                               ),
                       ],
