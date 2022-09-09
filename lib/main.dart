@@ -141,7 +141,7 @@ class _MainState extends State<Main> {
       "/library-content": (context) => const LibraryContent(),
     };
     double paddingLeft = 165;
-    double paddingRight = 80;
+    double paddingRight = 70;
     return WillPopScope(
       onWillPop: () async {
         return !await listOfKeys[_tabController.index].currentState!.maybePop();
