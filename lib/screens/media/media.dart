@@ -1,5 +1,6 @@
 import 'package:bell/screens/loading_screen.dart';
 import 'package:bell/services/auth.dart';
+// import 'package:bell/services/database.dart';
 import 'package:bell/widgets/custom_marquee.dart';
 import 'package:bell/screens/media/media_vmodel.dart';
 import 'package:bell/widgets/loading.dart';
@@ -9,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:like_button/like_button.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 // import 'package:webview_flutter/webview_flutter.dart';
@@ -151,8 +153,7 @@ class _MediaState extends State<Media> {
                                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                       children: const [
                                         Expanded(child: ThumbnailMedia()),
-                                        CurrentMediaTitle(padding: padding, fontSize: 35),
-                                        CurrentMediaArtists(padding: padding, fontSize: 25),
+                                        RateButtons(padding: padding),
                                         SizedBox(height: 10),
 
                                         // AddRemoveSongButtons(),
@@ -173,13 +174,67 @@ class _MediaState extends State<Media> {
   }
 }
 
+class RateButtons extends StatelessWidget {
+  const RateButtons({super.key, required this.padding});
+  final EdgeInsets padding;
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+        valueListenable: context.watch<MediaViewModel>().isMediaLikedNotifier,
+        builder: (context, isMediaLiked, _) {
+          return ValueListenableBuilder<String>(
+              valueListenable: context.watch<MediaViewModel>().currentVideoIdNotifier,
+              builder: (context, videoId, _) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CurrentMediaTitle(padding: padding, fontSize: 25),
+                        CurrentMediaArtists(padding: padding, fontSize: 20),
+                      ],
+                    ),
+                    const Spacer(),
+                    LikeButton(
+                      isLiked: isMediaLiked,
+                      likeBuilder: (_) {
+                        return isMediaLiked
+                            ? const Icon(
+                                Iconsax.heart5,
+                                color: Colors.redAccent,
+                              )
+                            : const Icon(
+                                Iconsax.heart4,
+                                color: Colors.white,
+                              );
+                      },
+                      onTap: (_) async {
+                        final mediaVMProvider = Provider.of<MediaViewModel>(context, listen: false);
+                        late String rating;
+                        if (isMediaLiked) {
+                          rating = "INDIFFERENT";
+                        } else {
+                          rating = "LIKE";
+                        }
+                        isMediaLiked = await mediaVMProvider.rateMedia(videoId: videoId, rating: rating);
+                        return isMediaLiked;
+                      },
+                    ),
+                  ],
+                );
+              });
+        });
+  }
+}
+
 class CurrentMediaTitle extends StatelessWidget {
   const CurrentMediaTitle({Key? key, this.padding = EdgeInsets.zero, required this.fontSize}) : super(key: key);
   final EdgeInsets padding;
   final double fontSize;
   @override
   Widget build(BuildContext context) {
-    final double width = MediaQuery.of(context).size.width - padding.left - padding.right - 10;
+    final double width = MediaQuery.of(context).size.width - padding.left - padding.right - 50;
     return ValueListenableBuilder<String>(
       valueListenable: context.watch<MediaViewModel>().currentMediaTitleNotifier,
       builder: (_, title, __) {
@@ -196,7 +251,7 @@ class CurrentMediaArtists extends StatelessWidget {
   final double fontSize;
   @override
   Widget build(BuildContext context) {
-    final double width = MediaQuery.of(context).size.width - padding.left - padding.right - 10;
+    final double width = MediaQuery.of(context).size.width - padding.left - padding.right - 50;
     return ValueListenableBuilder<String>(
       valueListenable: context.watch<MediaViewModel>().currentArtistsNotifier,
       builder: (_, currentArtists, __) {
