@@ -1,4 +1,5 @@
 import 'package:bell/screens/authenticate/authenticate.dart';
+import 'package:bell/services/auth.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:bell/main.dart';
@@ -10,6 +11,7 @@ class Wrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentUser = Provider.of<User?>(context);
+    context.watch<Authentication>().checkIfHeadersPresent();
 
     if (currentUser != null) {
       return const Main();
