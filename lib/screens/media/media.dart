@@ -1,9 +1,11 @@
+import 'package:bell/general_functions.dart';
 import 'package:bell/screens/loading_screen.dart';
 import 'package:bell/services/auth.dart';
 // import 'package:bell/services/database.dart';
 import 'package:bell/widgets/custom_marquee.dart';
 import 'package:bell/screens/media/media_vmodel.dart';
 import 'package:bell/widgets/loading.dart';
+import 'package:bell/widgets/error.dart';
 // import 'package:drop_shadow/drop_shadow.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -69,26 +71,56 @@ class _MediaState extends State<Media> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              "Welcome, $userName!",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 25,
-                              ),
+                            Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Image.asset("assets/welcome.jpg"),
+                                Positioned(
+                                  top: 20,
+                                  child: Text(
+                                    "Welcome, ${userName!.split(" ")[0]}!",
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 30,
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  bottom: 10,
+                                  child: Column(
+                                    children: const [
+                                      Text(
+                                        "Your library is still empty!",
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                        ),
+                                      ),
+                                      SizedBox(height: 10),
+                                      Text(
+                                        "Find your best music in the search tab.",
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(15.0),
-                                child: Image.asset("assets/beluga.gif"),
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            const Text(
-                              "Find your best music in the search tab.",
-                              style: TextStyle(
-                                // fontWeight: FontWeight.bold,
-                                fontSize: 20,
+                            SizedBox(
+                              width: 125,
+                              child: Transform.translate(
+                                offset: const Offset(-25, 50),
+                                child: Transform.scale(
+                                  scaleY: 2,
+                                  scaleX: 1.2,
+                                  child: Transform.rotate(
+                                    angle: 1.5708,
+                                    child: Image.asset(
+                                      "assets/arrow.gif",
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           ],
@@ -132,13 +164,24 @@ class _MediaState extends State<Media> {
                                 ),
                               ),
                               actions: [
-                                IconButton(
-                                  onPressed: () {},
-                                  icon: const Icon(
-                                    Iconsax.music_filter,
-                                    color: Colors.white,
-                                  ),
-                                ),
+                                ValueListenableBuilder<String>(
+                                    valueListenable: context.watch<MediaViewModel>().currentVideoIdNotifier,
+                                    builder: (context, currentVideoId, _) {
+                                      return IconButton(
+                                        onPressed: () async {
+                                          showCupertinoModalBottomSheet(
+                                            context: context,
+                                            expand: true,
+                                            bounce: true,
+                                            builder: (context) => Lyrics(videoId: currentVideoId),
+                                          );
+                                        },
+                                        icon: const Icon(
+                                          Iconsax.music_filter,
+                                          color: Colors.white,
+                                        ),
+                                      );
+                                    }),
                               ],
                             ),
                             body: ValueListenableBuilder<bool>(
@@ -298,6 +341,77 @@ class QueuePlaylist extends StatelessWidget {
                 );
               },
             );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class Lyrics extends StatelessWidget {
+  const Lyrics({super.key, required this.videoId});
+  final String videoId;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.black,
+      child: SafeArea(
+        top: false,
+        child: FutureBuilder(
+          future: context.watch<MediaViewModel>().getLyrics(videoId),
+          builder: (BuildContext context, AsyncSnapshot<Map?> snapshot) {
+            Widget child;
+            final data = snapshot.data;
+
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const Loading();
+            } else if (snapshot.hasData) {
+              if (data != null && data.isNotEmpty) {
+                late String currentArtist;
+                final artists = data["artists"];
+                if (artists.runtimeType == List) {
+                  currentArtist = getArtists(artists);
+                } else {
+                  currentArtist = artists;
+                }
+                child = Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: InkWell(
+                    onTap: () {},
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: [
+                        Text(
+                          '"${data["title"]}" by $currentArtist',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+                        ),
+                        Text(
+                          data["lyrics"],
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          data["source"],
+                          style: const TextStyle(color: Colors.white),
+                        )
+                      ],
+                    ),
+                  ),
+                );
+              } else {
+                child = const Text(
+                  "Lyrics not available",
+                  style: TextStyle(color: Colors.white),
+                );
+              }
+            } else if (snapshot.hasError) {
+              String error = "Connection error. Try again.";
+              return Error(error: error);
+            } else {
+              child = const Loading();
+            }
+            return child;
           },
         ),
       ),
@@ -563,7 +677,6 @@ class ThumbnailMedia extends StatelessWidget {
           child: thumbnailUrl != ""
               ? Image.network(
                   thumbnailUrl!,
-                  fit: BoxFit.fitWidth,
                 )
               : const SpinKitChasingDots(
                   color: Colors.white,
