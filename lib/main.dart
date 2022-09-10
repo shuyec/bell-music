@@ -140,7 +140,7 @@ class _MainState extends State<Main> {
       "/artist-albums": (context) => const ArtistAlbums(),
       "/library-content": (context) => const LibraryContent(),
     };
-    double paddingLeft = 165;
+    double paddingLeft = 140;
     double paddingRight = 70;
     return WillPopScope(
       onWillPop: () async {
@@ -198,10 +198,11 @@ class _MainState extends State<Main> {
                                       ),
                                       child: CurrentMediaArtists(fontSize: 15, padding: EdgeInsets.only(left: paddingLeft, right: paddingRight)),
                                     ),
+                                    // TODO: measure size not working
                                     leading: MeasureSize(
                                         onChange: (size) {
                                           setState(() {
-                                            paddingLeft = size.width;
+                                            paddingLeft = size.width * 3;
                                           });
                                         },
                                         child: const ThumbnailMedia()),
