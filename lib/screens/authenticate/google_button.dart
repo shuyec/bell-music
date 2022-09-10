@@ -44,10 +44,6 @@ class GoogleSignInButtonState extends State<GoogleSignInButton> {
 
                 User? user = await Provider.of<Authentication>(context, listen: false).signInWithGoogle(context: context);
 
-                // setState(() {
-                //   _isSigningIn = false;
-                // });
-
                 if (user != null) {
                   final userSnapshot = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
                   bool docExists = await Database(user.uid).checkIfDocExists(userSnapshot.reference.id);
@@ -64,6 +60,10 @@ class GoogleSignInButtonState extends State<GoogleSignInButton> {
                   //   ),
                   //   (_) => false,
                   // );
+                } else {
+                  setState(() {
+                    _isSigningIn = false;
+                  });
                 }
               },
               child: Padding(
