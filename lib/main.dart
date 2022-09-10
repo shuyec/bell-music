@@ -19,7 +19,6 @@ import 'package:bell/screens/media/media.dart';
 import 'package:bell/screens/library/library.dart';
 import 'package:bell/screens/search/search.dart';
 import 'package:bell/screens/wrapper.dart';
-import 'package:iconsax/iconsax.dart';
 // import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 
@@ -247,7 +246,12 @@ class _MainState extends State<Main> {
                 backgroundColor: Colors.black,
                 shape: RoundedRectangleBorder(side: const BorderSide(width: 3, color: Colors.white), borderRadius: BorderRadius.circular(100)),
                 child: FittedBox(
-                  child: context.watch<MediaViewModel>().queue.isEmpty ? const Icon(Iconsax.music_play5) : const PlayButton(),
+                  child: context.watch<MediaViewModel>().queue.isEmpty
+                      ? const Icon(
+                          Icons.music_note,
+                          size: 40,
+                        )
+                      : const PlayButton(),
                 ),
               ),
             ),
