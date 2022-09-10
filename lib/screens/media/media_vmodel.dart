@@ -26,7 +26,7 @@ class MediaViewModel extends ChangeNotifier {
   final thumbnailUrlNotifier = ValueNotifier<String>("");
   final isMediaLikedNotifier = ValueNotifier<bool>(false);
   final currentVideoIdNotifier = ValueNotifier<String>("");
-  final emptyQueueNotifier = ValueNotifier<bool>(true);
+  final emptyQueueNotifier = ValueNotifier<bool>(false);
 
   late int nowPlayingIndex;
   late String thumbnailUrl;
@@ -70,13 +70,8 @@ class MediaViewModel extends ChangeNotifier {
     if (_user != null) {
       _database = Database(_user!.uid);
       _audioPlayer = AudioPlayer();
-
-      data = await _database.getUserData(uid: _user!.uid) as Map<String, dynamic>;
       playButtonNotifier.value = ButtonState.loading;
-      if (data["queue"].isNotEmpty) {
-        emptyQueueNotifier.value = false;
-        await updatePlayer();
-      }
+      checkIfQueueEmpty(_user!);
     }
   }
 
@@ -95,6 +90,16 @@ class MediaViewModel extends ChangeNotifier {
     }
     _audioPlayer.play();
     notifyListeners();
+  }
+
+  Future<void> checkIfQueueEmpty(User user) async {
+    final data = await _database.getUserData(uid: user.uid);
+    if (data!["queue"].isNotEmpty) {
+      emptyQueueNotifier.value = false;
+      await updatePlayer();
+    } else {
+      emptyQueueNotifier.value = true;
+    }
   }
 
   void updateIsLoading(bool isLoading) {
@@ -323,6 +328,56 @@ class MediaViewModel extends ChangeNotifier {
     final index = _playlist.length - 1;
     if (index < 0) return;
     _playlist.removeAt(index);
+  }
+
+  // API request get lyrics
+  CancelToken cancelLyricsToken = CancelToken();
+  Future<Map> getLyrics(String videoId) async {
+    late Response response;
+    late Response getResponse;
+    String url = "http://10.0.2.2:8000/api/media";
+    bool connectionSuccessful = false;
+
+    Dio dio = Dio();
+    dio.options.contentType = 'application/json; charset=UTF-8';
+    dio.options.headers['Connection'] = 'Keep-Alive';
+    dio.options.headers["Accept"] = "application/json";
+
+    cancelLyricsToken.cancel();
+    cancelLyricsToken = CancelToken();
+    while (!connectionSuccessful) {
+      try {
+        response = await dio.post(
+          url,
+          data: {
+            'videoId': videoId,
+            "lyrics": true,
+          },
+          options: Options(
+              followRedirects: true,
+              validateStatus: (status) {
+                return status! < 500;
+              }),
+          cancelToken: cancelLyricsToken,
+        );
+        String resphead = response.headers["location"]![0].toString();
+        getResponse = await dio.post(
+          resphead,
+          data: {
+            'videoId': videoId,
+            "lyrics": true,
+          },
+          cancelToken: cancelLyricsToken,
+        );
+        if (getResponse.statusCode == 200) {
+          connectionSuccessful = true;
+          return getResponse.data;
+        }
+      } catch (e) {
+        return {};
+      }
+    }
+    return {};
   }
 
   // API request rate media
