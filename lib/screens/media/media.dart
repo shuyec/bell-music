@@ -152,10 +152,9 @@ class _MediaState extends State<Media> {
                                     child: Column(
                                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                       children: const [
-                                        Expanded(child: ThumbnailMedia()),
-                                        RateButtons(padding: padding),
+                                        Expanded(child: SizedBox.expand(child: FittedBox(child: ThumbnailMedia()))),
+                                        RateButton(padding: padding),
                                         SizedBox(height: 10),
-
                                         // AddRemoveSongButtons(),
                                         AudioProgressBar(),
                                         // AudioControlButtons(),
@@ -174,8 +173,8 @@ class _MediaState extends State<Media> {
   }
 }
 
-class RateButtons extends StatelessWidget {
-  const RateButtons({super.key, required this.padding});
+class RateButton extends StatelessWidget {
+  const RateButton({super.key, required this.padding});
   final EdgeInsets padding;
   @override
   Widget build(BuildContext context) {
@@ -564,6 +563,7 @@ class ThumbnailMedia extends StatelessWidget {
           child: thumbnailUrl != ""
               ? Image.network(
                   thumbnailUrl!,
+                  fit: BoxFit.fitWidth,
                 )
               : const SpinKitChasingDots(
                   color: Colors.white,
