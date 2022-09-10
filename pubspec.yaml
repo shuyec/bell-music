@@ -57,6 +57,8 @@ dependencies:
   drop_shadow: ^0.0.1+4
   # Overflowed scrolling text
   marquee: ^2.2.3
+  # Bordered text
+  bordered_text: ^2.0.0
   # Expandable
   expandable: ^5.0.1
   # Modal bottom sheet
