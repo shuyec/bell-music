@@ -22,6 +22,7 @@ search_post_args.add_argument("search", type=str)
 media_post_args = reqparse.RequestParser()
 media_post_args.add_argument("videoId", type=str)
 media_post_args.add_argument("rating", type=str)
+media_post_args.add_argument("lyrics", type=bool)
 
 album_post_args = reqparse.RequestParser()
 album_post_args.add_argument("browseId", type=str)
@@ -63,9 +64,15 @@ class Media(Resource):
         arguments = media_post_args.parse_args()
         video_id = arguments["videoId"]
         rating = arguments["rating"]
+        lyrics = arguments["lyrics"]
         if video_id == None:
             abort(400, message="Video Id needed")
-        if rating == None:
+        if lyrics:
+            watch_playlist = ytmusic.get_watch_playlist(video_id)
+            response = watch_playlist["tracks"][0]
+            lyrics = ytmusic.get_lyrics(watch_playlist["lyrics"])
+            response.update(lyrics)
+        elif rating == None:
             media = ytmusic.get_song(video_id)
             if media['playabilityStatus']['status'] == 'ERROR':
                 abort(404, message="This video does not exist")
