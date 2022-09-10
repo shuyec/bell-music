@@ -1,4 +1,5 @@
 import 'package:bell/screen_navigator.dart';
+import 'package:bell/screens/media/media_vmodel.dart';
 import 'package:bell/services/database.dart';
 import 'package:bell/widgets/loading.dart';
 import 'package:bell/widgets/error.dart';
@@ -10,6 +11,7 @@ import 'package:bell/screens/search/search_vmodel.dart';
 import 'package:dio/dio.dart';
 import 'package:iconly/iconly.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:provider/provider.dart';
 
 // This is the type used by the popup menu below.
 enum Menu { itemOne, itemTwo }
@@ -346,314 +348,119 @@ class _SearchResultsState extends State<SearchResults> {
   @override
   Widget build(BuildContext context) {
     return showFilters
-        ? FutureBuilder<List?>(
-            future: SearchViewModel().createSearch(searchController.text, _value, cancelToken),
-            builder: (BuildContext context, AsyncSnapshot<List?> snapshot) {
-              Widget child;
-              final data = snapshot.data;
-              String category = "";
-              if (snapshot.connectionState != ConnectionState.done) {
-                return const Expanded(
-                  child: Loading(),
-                );
-              } else if (snapshot.hasData) {
-                if (data != null && data.isNotEmpty) {
-                  child = ListView.builder(
-                    key: ObjectKey(_value),
-                    scrollDirection: Axis.vertical,
-                    shrinkWrap: true,
-                    itemCount: data.length,
-                    itemBuilder: (context, index) {
-                      String oldCategory = category;
-                      category = data[index]["category"];
-                      Map mediaData = data[index];
-                      String type = mediaData["resultType"];
-                      String thumbnail = mediaData["thumbnails"][0]["url"];
-                      return Column(
-                        children: [
-                          data[0]["category"] == "Top result" && oldCategory != category
-                              ? ListTile(
-                                  onTap: category != "Top result"
-                                      ? () {
-                                          switch (data[index]["category"]) {
-                                            case "Songs":
-                                              {
-                                                cancelToken.cancel();
-                                                cancelToken = CancelToken();
-                                                _value = 1;
-                                                widget.callSetState();
+        ? ValueListenableBuilder<String>(
+            valueListenable: context.watch<MediaViewModel>().currentVideoIdNotifier,
+            builder: (context, currentVideoId, _) {
+              return FutureBuilder<List?>(
+                future: SearchViewModel().createSearch(searchController.text, _value, cancelToken),
+                builder: (BuildContext context, AsyncSnapshot<List?> snapshot) {
+                  Widget child;
+                  final data = snapshot.data;
+                  Map categories = {};
+                  String category = "";
+                  if (snapshot.connectionState != ConnectionState.done) {
+                    return const Expanded(
+                      child: Loading(),
+                    );
+                  } else if (snapshot.hasData) {
+                    if (data != null && data.isNotEmpty) {
+                      child = ListView.builder(
+                        key: ObjectKey(_value),
+                        scrollDirection: Axis.vertical,
+                        // shrinkWrap: true,
+                        itemCount: data.length,
+                        itemBuilder: (context, index) {
+                          category = data[index]["category"];
+                          if (!categories.containsKey(category)) {
+                            categories[category] = index;
+                          }
+                          Map mediaData = data[index];
+                          String type = mediaData["resultType"];
+                          String thumbnail = mediaData["thumbnails"][0]["url"];
+                          Color color = currentVideoId == mediaData["videoId"] ? Colors.black : Colors.white;
+                          Color tileColor = currentVideoId == mediaData["videoId"] ? Colors.white : Colors.black;
+                          return Column(
+                            children: [
+                              data[0]["category"] == "Top result" && categories[category] == index
+                                  ? ListTile(
+                                      onTap: category != "Top result"
+                                          ? () {
+                                              switch (data[index]["category"]) {
+                                                case "Songs":
+                                                  {
+                                                    cancelToken.cancel();
+                                                    cancelToken = CancelToken();
+                                                    _value = 1;
+                                                    widget.callSetState();
+                                                  }
+                                                  break;
+                                                case "Albums":
+                                                  {
+                                                    cancelToken.cancel();
+                                                    cancelToken = CancelToken();
+                                                    _value = 2;
+                                                    widget.callSetState();
+                                                  }
+                                                  break;
+                                                case "Artists":
+                                                  {
+                                                    cancelToken.cancel();
+                                                    cancelToken = CancelToken();
+                                                    _value = 3;
+                                                    widget.callSetState();
+                                                  }
+                                                  break;
+                                                case "Videos":
+                                                  {
+                                                    cancelToken.cancel();
+                                                    cancelToken = CancelToken();
+                                                    _value = 4;
+                                                    widget.callSetState();
+                                                  }
+                                                  break;
+                                                case "Community playlists":
+                                                  {
+                                                    cancelToken.cancel();
+                                                    cancelToken = CancelToken();
+                                                    _value = 5;
+                                                    widget.callSetState();
+                                                  }
+                                                  break;
+                                                case "Featured playlists":
+                                                  {
+                                                    cancelToken.cancel();
+                                                    cancelToken = CancelToken();
+                                                    _value = 6;
+                                                    widget.callSetState();
+                                                  }
+                                                  break;
+                                                default:
+                                                  break;
                                               }
-                                              break;
-                                            case "Albums":
-                                              {
-                                                cancelToken.cancel();
-                                                cancelToken = CancelToken();
-                                                _value = 2;
-                                                widget.callSetState();
-                                              }
-                                              break;
-                                            case "Artists":
-                                              {
-                                                cancelToken.cancel();
-                                                cancelToken = CancelToken();
-                                                _value = 3;
-                                                widget.callSetState();
-                                              }
-                                              break;
-                                            case "Videos":
-                                              {
-                                                cancelToken.cancel();
-                                                cancelToken = CancelToken();
-                                                _value = 4;
-                                                widget.callSetState();
-                                              }
-                                              break;
-                                            case "Community playlists":
-                                              {
-                                                cancelToken.cancel();
-                                                cancelToken = CancelToken();
-                                                _value = 5;
-                                                widget.callSetState();
-                                              }
-                                              break;
-                                            case "Featured playlists":
-                                              {
-                                                cancelToken.cancel();
-                                                cancelToken = CancelToken();
-                                                _value = 6;
-                                                widget.callSetState();
-                                              }
-                                              break;
-                                            default:
-                                              break;
-                                          }
-                                        }
-                                      : null,
-                                  title: Text(
-                                    category,
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                                  ),
-                                  trailing: category != "Top result"
-                                      ? const Text(
-                                          "MORE",
-                                          style: TextStyle(color: Colors.grey),
-                                        )
-                                      : null,
-                                )
-                              : const SizedBox(),
-                          ListTile(
-                            onTap: () async {
-                              searchFocus.unfocus();
-                              Map mediaData = data[index];
-                              _database.updateSearchHistory(search: mediaData);
-                              await _screenNavigator.visitPage(context: context, mediaData: mediaData, type: type);
-                            },
-                            title: type == "artist"
-                                ? Text(
-                                    mediaData["artist"],
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
-                                    overflow: TextOverflow.ellipsis,
-                                  )
-                                : Text(
-                                    mediaData["title"],
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                            leading: type == "artist"
-                                ? CircleAvatar(
-                                    radius: 30,
-                                    backgroundImage: NetworkImage(thumbnail),
-                                  )
-                                : ClipRRect(
-                                    borderRadius: const BorderRadius.all(Radius.circular(6.0)),
-                                    child: SizedBox(height: 60, width: 60, child: Image.network(thumbnail)),
-                                  ),
-                            trailing: type == "song" || type == "video"
-                                ? PopupMenuButton(
-                                    color: Colors.grey[900],
-                                    child: const Icon(
-                                      Iconsax.more_24,
-                                      color: Colors.white,
-                                    ),
-                                    onSelected: (Menu item) {
-                                      selectedMenu = item.name;
-                                      widget.callSetState();
-                                    },
-                                    itemBuilder: (BuildContext context) => <PopupMenuEntry<Menu>>[
-                                          const PopupMenuItem<Menu>(
-                                            value: Menu.itemOne,
-                                            child: Text('Item 1'),
-                                          ),
-                                          const PopupMenuItem<Menu>(
-                                            value: Menu.itemTwo,
-                                            child: Text('Item 2'),
-                                          ),
-                                        ])
-                                : const Icon(
-                                    Iconsax.arrow_right_3,
-                                    color: Colors.white,
-                                  ),
-                            subtitle: type == "song"
-                                ? Row(
-                                    children: [
-                                      mediaData["isExplicit"] == true
-                                          ? Row(
-                                              children: const [
-                                                Icon(
-                                                  Icons.explicit_rounded,
-                                                  color: Colors.white,
-                                                  size: 20,
-                                                ),
-                                                Text(" "),
-                                              ],
-                                            )
-                                          : const Text(""),
-                                      Flexible(
-                                        fit: FlexFit.loose,
-                                        child: Text(
-                                          "${capitalize(type)} • ${getArtists(mediaData["artists"])} • ${mediaData["album"]["name"]} • ${mediaData["duration"]}",
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
+                                            }
+                                          : null,
+                                      title: Text(
+                                        category,
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                                       ),
-                                    ],
-                                  )
-                                : type == "artist"
-                                    ? Text(
-                                        capitalize(type),
-                                        overflow: TextOverflow.ellipsis,
-                                      )
-                                    : type == "album"
-                                        ? Row(
-                                            children: [
-                                              mediaData["isExplicit"] == true
-                                                  ? Row(
-                                                      children: const [
-                                                        Icon(
-                                                          Icons.explicit_rounded,
-                                                          color: Colors.white,
-                                                          size: 20,
-                                                        ),
-                                                        Text(" "),
-                                                      ],
-                                                    )
-                                                  : const Text(""),
-                                              Flexible(
-                                                fit: FlexFit.loose,
-                                                child: Text(
-                                                  "${capitalize(type)} • ${getArtists(mediaData["artists"])} • ${mediaData["year"]}",
-                                                  overflow: TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                            ],
-                                          )
-                                        : data[index]["resultType"] == "playlist"
-                                            ? Text(
-                                                "${capitalize(type)} • ${mediaData["author"]} • ${mediaData["itemCount"]} Songs",
-                                                overflow: TextOverflow.ellipsis,
-                                              )
-                                            : data[index]["resultType"] == "video"
-                                                ? Text(
-                                                    "${capitalize(type)} • ${getArtists(mediaData["artists"])} • ${mediaData["views"]} • ${mediaData["duration"]}",
-                                                    overflow: TextOverflow.ellipsis,
-                                                  )
-                                                : null,
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                } else {
-                  child = Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(
-                          Icons.search_off,
-                          color: Colors.white,
-                          size: 60,
-                        ),
-                        Text("No results")
-                      ],
-                    ),
-                  );
-                }
-              } else if (snapshot.hasError) {
-                String error = "Connection error. Try again.";
-                return Expanded(
-                  child: Error(error: error),
-                );
-              } else {
-                child = const Expanded(child: Loading());
-              }
-              return Expanded(
-                child: child,
-              );
-            })
-        : const SizedBox();
-  }
-}
-
-class SearchHistory extends StatefulWidget {
-  const SearchHistory({Key? key}) : super(key: key);
-  @override
-  State<SearchHistory> createState() => _SearchHistoryState();
-}
-
-class _SearchHistoryState extends State<SearchHistory> {
-  @override
-  Widget build(BuildContext context) {
-    return !showFilters
-        ? Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(10, 5, 0, 5),
-                  child: Text(
-                    "Search history",
-                    style: TextStyle(
-                      fontSize: 20.0,
-                    ),
-                  ),
-                ),
-                FutureBuilder<Map<String, dynamic>?>(
-                    future: _database.getUserData(uid: _user.uid),
-                    builder: (BuildContext context, AsyncSnapshot<Map<String, dynamic>?> snapshot) {
-                      Widget child;
-                      final data = snapshot.data;
-
-                      if (snapshot.connectionState != ConnectionState.done) {
-                        return const Expanded(child: Loading());
-                      } else if (snapshot.hasData) {
-                        if (data != null && data.isNotEmpty) {
-                          final searchHistoryData = data["searchHistory"]["data"];
-                          if (searchHistoryData.isEmpty) {
-                            child = Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: const [
-                                  Icon(
-                                    Iconsax.music_square_search5,
-                                    color: Colors.white,
-                                    size: 60,
-                                  ),
-                                  Text("No searches"),
-                                ],
-                              ),
-                            );
-                          } else {
-                            child = ListView.builder(
-                              key: ObjectKey(_value),
-                              scrollDirection: Axis.vertical,
-                              shrinkWrap: true,
-                              itemCount: searchHistoryData.length,
-                              itemBuilder: (context, index) {
-                                Map mediaData = searchHistoryData[index];
-                                String type = mediaData["resultType"];
-                                String thumbnail = mediaData["thumbnails"][0]["url"];
-                                return ListTile(
+                                      trailing: category != "Top result"
+                                          ? const Text(
+                                              "MORE",
+                                              style: TextStyle(color: Colors.grey),
+                                            )
+                                          : null,
+                                    )
+                                  : const SizedBox(),
+                              Material(
+                                color: Colors.black,
+                                child: ListTile(
+                                  tileColor: tileColor,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: currentVideoId == mediaData["videoId"] ? BorderRadius.circular(10) : BorderRadius.circular(100)),
                                   onTap: () async {
                                     searchFocus.unfocus();
+                                    Map mediaData = data[index];
+                                    _database.updateSearchHistory(search: mediaData);
                                     await _screenNavigator.visitPage(context: context, mediaData: mediaData, type: type);
                                   },
                                   title: type == "artist"
@@ -664,7 +471,7 @@ class _SearchHistoryState extends State<SearchHistory> {
                                         )
                                       : Text(
                                           mediaData["title"],
-                                          style: const TextStyle(fontWeight: FontWeight.bold),
+                                          style: TextStyle(fontWeight: FontWeight.bold, color: color),
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                   leading: type == "artist"
@@ -676,31 +483,43 @@ class _SearchHistoryState extends State<SearchHistory> {
                                           borderRadius: const BorderRadius.all(Radius.circular(6.0)),
                                           child: SizedBox(height: 60, width: 60, child: Image.network(thumbnail)),
                                         ),
-                                  trailing: IconButton(
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
-                                    icon: const Icon(
-                                      Icons.clear,
-                                      color: Colors.white,
-                                    ),
-                                    onPressed: (() async {
-                                      _database.updateSearchHistory(search: mediaData, type: "delete");
-                                      await _database.getUserData(uid: _user.uid);
-                                      setState(() {});
-                                    }),
-                                  ),
+                                  trailing: type == "song" || type == "video"
+                                      ? PopupMenuButton(
+                                          color: Colors.grey[900],
+                                          child: Icon(
+                                            Iconsax.more_24,
+                                            color: color,
+                                          ),
+                                          onSelected: (Menu item) {
+                                            selectedMenu = item.name;
+                                            widget.callSetState();
+                                          },
+                                          itemBuilder: (BuildContext context) => <PopupMenuEntry<Menu>>[
+                                                const PopupMenuItem<Menu>(
+                                                  value: Menu.itemOne,
+                                                  child: Text('Item 1'),
+                                                ),
+                                                const PopupMenuItem<Menu>(
+                                                  value: Menu.itemTwo,
+                                                  child: Text('Item 2'),
+                                                ),
+                                              ])
+                                      : Icon(
+                                          Iconsax.arrow_right_3,
+                                          color: color,
+                                        ),
                                   subtitle: type == "song"
                                       ? Row(
                                           children: [
                                             mediaData["isExplicit"] == true
                                                 ? Row(
-                                                    children: const [
+                                                    children: [
                                                       Icon(
                                                         Icons.explicit_rounded,
-                                                        color: Colors.white,
+                                                        color: color,
                                                         size: 20,
                                                       ),
-                                                      Text(" "),
+                                                      const Text(" "),
                                                     ],
                                                   )
                                                 : const Text(""),
@@ -709,6 +528,7 @@ class _SearchHistoryState extends State<SearchHistory> {
                                               child: Text(
                                                 "${capitalize(type)} • ${getArtists(mediaData["artists"])} • ${mediaData["album"]["name"]} • ${mediaData["duration"]}",
                                                 overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(color: color),
                                               ),
                                             ),
                                           ],
@@ -742,44 +562,262 @@ class _SearchHistoryState extends State<SearchHistory> {
                                                     ),
                                                   ],
                                                 )
-                                              : mediaData["resultType"] == "playlist"
+                                              : data[index]["resultType"] == "playlist"
                                                   ? Text(
                                                       "${capitalize(type)} • ${mediaData["author"]} • ${mediaData["itemCount"]} Songs",
                                                       overflow: TextOverflow.ellipsis,
                                                     )
-                                                  : mediaData["resultType"] == "video"
+                                                  : data[index]["resultType"] == "video"
                                                       ? Text(
                                                           "${capitalize(type)} • ${getArtists(mediaData["artists"])} • ${mediaData["views"]} • ${mediaData["duration"]}",
                                                           overflow: TextOverflow.ellipsis,
+                                                          style: TextStyle(color: color),
                                                         )
                                                       : null,
-                                );
-                              },
-                            );
-                          }
-                        } else {
-                          child = Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: const [
-                                Icon(
-                                  Iconsax.warning_25,
-                                  color: Colors.white,
-                                  size: 60,
                                 ),
-                                Text("Error search")
-                              ],
-                            ),
+                              ),
+                            ],
                           );
-                        }
-                      } else if (snapshot.hasError) {
-                        String error = "Connection error. Try again.";
-                        return Error(error: error);
-                      } else {
-                        child = const Expanded(child: Loading());
-                      }
-                      return Expanded(
-                        child: child,
+                        },
+                      );
+                    } else {
+                      child = Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Icon(
+                              Icons.search_off,
+                              color: Colors.white,
+                              size: 60,
+                            ),
+                            Text("No results")
+                          ],
+                        ),
+                      );
+                    }
+                  } else if (snapshot.hasError) {
+                    String error = "Connection error. Try again.";
+                    return Expanded(
+                      child: Error(error: error),
+                    );
+                  } else {
+                    child = const Expanded(child: Loading());
+                  }
+                  return Expanded(
+                    child: child,
+                  );
+                },
+              );
+            })
+        : const SizedBox();
+  }
+}
+
+class SearchHistory extends StatefulWidget {
+  const SearchHistory({Key? key}) : super(key: key);
+  @override
+  State<SearchHistory> createState() => _SearchHistoryState();
+}
+
+class _SearchHistoryState extends State<SearchHistory> {
+  @override
+  Widget build(BuildContext context) {
+    return !showFilters
+        ? Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(10, 5, 0, 5),
+                  child: Text(
+                    "Search history",
+                    style: TextStyle(
+                      fontSize: 20.0,
+                    ),
+                  ),
+                ),
+                ValueListenableBuilder<String>(
+                    valueListenable: context.watch<MediaViewModel>().currentVideoIdNotifier,
+                    builder: (context, currentVideoId, _) {
+                      return FutureBuilder<Map<String, dynamic>?>(
+                        future: _database.getUserData(uid: _user.uid),
+                        builder: (BuildContext context, AsyncSnapshot<Map<String, dynamic>?> snapshot) {
+                          Widget child;
+                          final data = snapshot.data;
+
+                          if (snapshot.connectionState != ConnectionState.done) {
+                            return const Expanded(child: Loading());
+                          } else if (snapshot.hasData) {
+                            if (data != null && data.isNotEmpty) {
+                              final searchHistoryData = data["searchHistory"]["data"];
+                              if (searchHistoryData.isEmpty) {
+                                child = Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: const [
+                                      Icon(
+                                        Iconsax.music_square_search5,
+                                        color: Colors.white,
+                                        size: 60,
+                                      ),
+                                      Text("No searches"),
+                                    ],
+                                  ),
+                                );
+                              } else {
+                                child = ListView.builder(
+                                  key: ObjectKey(_value),
+                                  scrollDirection: Axis.vertical,
+                                  // shrinkWrap: true,
+                                  itemCount: searchHistoryData.length,
+                                  itemBuilder: (context, index) {
+                                    Map mediaData = searchHistoryData[index];
+                                    String type = mediaData["resultType"];
+                                    String thumbnail = mediaData["thumbnails"][0]["url"];
+                                    Color color = currentVideoId == mediaData["videoId"] ? Colors.black : Colors.white;
+                                    Color tileColor = currentVideoId == mediaData["videoId"] ? Colors.white : Colors.black;
+                                    return Material(
+                                      color: Colors.black,
+                                      child: ListTile(
+                                        tileColor: tileColor,
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                currentVideoId == mediaData["videoId"] ? BorderRadius.circular(10) : BorderRadius.circular(100)),
+                                        onTap: () async {
+                                          searchFocus.unfocus();
+                                          await _screenNavigator.visitPage(context: context, mediaData: mediaData, type: type);
+                                        },
+                                        title: type == "artist"
+                                            ? Text(
+                                                mediaData["artist"],
+                                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                                overflow: TextOverflow.ellipsis,
+                                              )
+                                            : Text(
+                                                mediaData["title"],
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: color,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                        leading: type == "artist"
+                                            ? CircleAvatar(
+                                                radius: 30,
+                                                backgroundImage: NetworkImage(thumbnail),
+                                              )
+                                            : ClipRRect(
+                                                borderRadius: const BorderRadius.all(Radius.circular(6.0)),
+                                                child: SizedBox(height: 60, width: 60, child: Image.network(thumbnail)),
+                                              ),
+                                        trailing: IconButton(
+                                          padding: EdgeInsets.zero,
+                                          constraints: const BoxConstraints(),
+                                          icon: Icon(
+                                            Icons.clear,
+                                            color: color,
+                                          ),
+                                          onPressed: (() async {
+                                            _database.updateSearchHistory(search: mediaData, type: "delete");
+                                            await _database.getUserData(uid: _user.uid);
+                                            setState(() {});
+                                          }),
+                                        ),
+                                        subtitle: type == "song"
+                                            ? Row(
+                                                children: [
+                                                  mediaData["isExplicit"] == true
+                                                      ? Row(
+                                                          children: [
+                                                            Icon(
+                                                              Icons.explicit_rounded,
+                                                              color: color,
+                                                              size: 20,
+                                                            ),
+                                                            const Text(" "),
+                                                          ],
+                                                        )
+                                                      : const Text(""),
+                                                  Flexible(
+                                                    fit: FlexFit.loose,
+                                                    child: Text(
+                                                      "${capitalize(type)} • ${getArtists(mediaData["artists"])} • ${mediaData["album"]["name"]} • ${mediaData["duration"]}",
+                                                      overflow: TextOverflow.ellipsis,
+                                                      style: TextStyle(color: color),
+                                                    ),
+                                                  ),
+                                                ],
+                                              )
+                                            : type == "artist"
+                                                ? Text(
+                                                    capitalize(type),
+                                                    overflow: TextOverflow.ellipsis,
+                                                  )
+                                                : type == "album"
+                                                    ? Row(
+                                                        children: [
+                                                          mediaData["isExplicit"] == true
+                                                              ? Row(
+                                                                  children: const [
+                                                                    Icon(
+                                                                      Icons.explicit_rounded,
+                                                                      size: 20,
+                                                                    ),
+                                                                    Text(" "),
+                                                                  ],
+                                                                )
+                                                              : const Text(""),
+                                                          Flexible(
+                                                            fit: FlexFit.loose,
+                                                            child: Text(
+                                                              "${capitalize(type)} • ${getArtists(mediaData["artists"])} • ${mediaData["year"]}",
+                                                              overflow: TextOverflow.ellipsis,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      )
+                                                    : mediaData["resultType"] == "playlist"
+                                                        ? Text(
+                                                            "${capitalize(type)} • ${mediaData["author"]} • ${mediaData["itemCount"]} Songs",
+                                                            overflow: TextOverflow.ellipsis,
+                                                          )
+                                                        : mediaData["resultType"] == "video"
+                                                            ? Text(
+                                                                "${capitalize(type)} • ${getArtists(mediaData["artists"])} • ${mediaData["views"]} • ${mediaData["duration"]}",
+                                                                overflow: TextOverflow.ellipsis,
+                                                                style: TextStyle(color: color),
+                                                              )
+                                                            : null,
+                                      ),
+                                    );
+                                  },
+                                );
+                              }
+                            } else {
+                              child = Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: const [
+                                    Icon(
+                                      Iconsax.warning_25,
+                                      color: Colors.white,
+                                      size: 60,
+                                    ),
+                                    Text("Error search")
+                                  ],
+                                ),
+                              );
+                            }
+                          } else if (snapshot.hasError) {
+                            String error = "Connection error. Try again.";
+                            return Error(error: error);
+                          } else {
+                            child = const Expanded(child: Loading());
+                          }
+                          return Expanded(
+                            child: child,
+                          );
+                        },
                       );
                     }),
               ],
