@@ -51,6 +51,7 @@ dependencies:
   # Icons
   iconly: ^1.0.1
   iconsax: ^0.0.8
+  font_awesome_flutter: ^10.2.1
   # Like button
   like_button: ^2.0.4
   # Drop shadow NOT USED YET
