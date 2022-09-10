@@ -81,7 +81,7 @@ class _ArtistState extends State<Artist> {
                   ],
                 );
               } else {
-                child = const Error(error: "Error: no artist data");
+                child = const Text("Here you'll see your listened artists.");
               }
             } else if (snapshot.hasError) {
               String error = "Connection error. Try again.";
