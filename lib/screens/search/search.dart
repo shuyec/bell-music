@@ -526,7 +526,7 @@ class _SearchResultsState extends State<SearchResults> {
                                             Flexible(
                                               fit: FlexFit.loose,
                                               child: Text(
-                                                "${capitalize(type)} • ${getArtists(mediaData["artists"])} • ${mediaData["album"]["name"]} • ${mediaData["duration"]}",
+                                                "${capitalize(type)} • ${mediaData["duration"]} • ${getArtists(mediaData["artists"])} • ${mediaData["album"]["name"]}",
                                                 overflow: TextOverflow.ellipsis,
                                                 style: TextStyle(color: color),
                                               ),
@@ -552,13 +552,18 @@ class _SearchResultsState extends State<SearchResults> {
                                                               Text(" "),
                                                             ],
                                                           )
-                                                        : const Text(""),
+                                                        : const SizedBox(),
                                                     Flexible(
                                                       fit: FlexFit.loose,
-                                                      child: Text(
-                                                        "${capitalize(type)} • ${getArtists(mediaData["artists"])} • ${mediaData["year"]}",
-                                                        overflow: TextOverflow.ellipsis,
-                                                      ),
+                                                      child: mediaData["artists"].isNotEmpty
+                                                          ? Text(
+                                                              "${capitalize(type)} • ${getArtists(mediaData["artists"])} • ${mediaData["year"]}",
+                                                              overflow: TextOverflow.ellipsis,
+                                                            )
+                                                          : Text(
+                                                              "${capitalize(type)} • ${mediaData["year"]}",
+                                                              overflow: TextOverflow.ellipsis,
+                                                            ),
                                                     ),
                                                   ],
                                                 )
@@ -569,7 +574,7 @@ class _SearchResultsState extends State<SearchResults> {
                                                     )
                                                   : data[index]["resultType"] == "video"
                                                       ? Text(
-                                                          "${capitalize(type)} • ${getArtists(mediaData["artists"])} • ${mediaData["views"]} • ${mediaData["duration"]}",
+                                                          "${capitalize(type)} • ${mediaData["duration"]} • ${getArtists(mediaData["artists"])} • ${mediaData["views"]}",
                                                           overflow: TextOverflow.ellipsis,
                                                           style: TextStyle(color: color),
                                                         )
