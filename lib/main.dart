@@ -49,6 +49,7 @@ class Bell extends StatelessWidget {
           value: Authentication().userStream,
           initialData: null,
           child: MaterialApp(
+            debugShowCheckedModeBanner: false,
             title: 'Bell',
             theme: ThemeData(
                 disabledColor: Colors.grey[700],
@@ -162,69 +163,74 @@ class _MainState extends State<Main> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ValueListenableBuilder<bool>(
-                  valueListenable: context.read<MediaViewModel>().isLoadingNotifier,
-                  builder: (context, isLoading, child) {
-                    // TODO: MBS bug
-                    // navigate to tab 0 when media click
-                    if (isLoading) {
-                      _tabController.index = 0;
-                    }
-                    return !isLoading
-                        ? Container(
-                            decoration: const BoxDecoration(
-                              borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(20),
-                                topRight: Radius.circular(20),
-                              ),
-                              color: Colors.white,
-                            ),
-                            alignment: Alignment.center,
-                            width: double.infinity,
-                            height: 70,
-                            child: _tabController.index != 0
-                                ? ListTile(
-                                    title: ColorFiltered(
-                                      colorFilter: const ColorFilter.mode(
-                                        Colors.white,
-                                        BlendMode.difference,
-                                      ),
-                                      child: CurrentMediaTitle(fontSize: 15, padding: EdgeInsets.only(left: paddingLeft, right: paddingRight)),
+                  valueListenable: context.watch<MediaViewModel>().emptyQueueNotifier,
+                  builder: (context, emptyQueue, _) {
+                    return ValueListenableBuilder<bool>(
+                        valueListenable: context.read<MediaViewModel>().isLoadingNotifier,
+                        builder: (context, isLoading, child) {
+                          // TODO: MBS bug
+                          // navigate to tab 0 when media click
+                          if (isLoading) {
+                            _tabController.index = 0;
+                          }
+                          return !isLoading && !emptyQueue
+                              ? Container(
+                                  decoration: const BoxDecoration(
+                                    borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(20),
+                                      topRight: Radius.circular(20),
                                     ),
-                                    subtitle: ColorFiltered(
-                                      colorFilter: const ColorFilter.mode(
-                                        Colors.white,
-                                        BlendMode.difference,
-                                      ),
-                                      child: CurrentMediaArtists(fontSize: 15, padding: EdgeInsets.only(left: paddingLeft, right: paddingRight)),
-                                    ),
-                                    // TODO: measure size not working
-                                    leading: MeasureSize(
-                                        onChange: (size) {
-                                          setState(() {
-                                            paddingLeft = size.width * 3;
-                                          });
-                                        },
-                                        child: const ThumbnailMedia()),
-                                    trailing: MeasureSize(
-                                      onChange: (size) {
-                                        paddingRight = size.width;
-                                      },
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: const [
-                                          PreviousSongButton(color: Colors.black),
-                                          NextSongButton(color: Colors.black),
-                                        ],
-                                      ),
-                                    ),
-                                    onTap: (() {
-                                      // TODO: MBS bug
-                                      onChangedTab(0);
-                                      // screenNavigator.openMediaModal(context);
-                                    }),
-                                  )
-                                : const AudioControlButtons())
-                        : const SizedBox();
+                                    color: Colors.white,
+                                  ),
+                                  alignment: Alignment.center,
+                                  width: double.infinity,
+                                  height: 70,
+                                  child: _tabController.index != 0
+                                      ? ListTile(
+                                          title: ColorFiltered(
+                                            colorFilter: const ColorFilter.mode(
+                                              Colors.white,
+                                              BlendMode.difference,
+                                            ),
+                                            child: CurrentMediaTitle(fontSize: 15, padding: EdgeInsets.only(left: paddingLeft, right: paddingRight)),
+                                          ),
+                                          subtitle: ColorFiltered(
+                                            colorFilter: const ColorFilter.mode(
+                                              Colors.white,
+                                              BlendMode.difference,
+                                            ),
+                                            child:
+                                                CurrentMediaArtists(fontSize: 15, padding: EdgeInsets.only(left: paddingLeft, right: paddingRight)),
+                                          ),
+                                          // TODO: measure size not working
+                                          leading: MeasureSize(
+                                              onChange: (size) {
+                                                setState(() {
+                                                  paddingLeft = size.width * 3;
+                                                });
+                                              },
+                                              child: const ThumbnailMedia()),
+                                          trailing: MeasureSize(
+                                            onChange: (size) {
+                                              paddingRight = size.width;
+                                            },
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: const [
+                                                PreviousSongButton(color: Colors.black),
+                                                NextSongButton(color: Colors.black),
+                                              ],
+                                            ),
+                                          ),
+                                          onTap: (() {
+                                            // TODO: MBS bug
+                                            onChangedTab(0);
+                                            // screenNavigator.openMediaModal(context);
+                                          }),
+                                        )
+                                      : const AudioControlButtons())
+                              : const SizedBox();
+                        });
                   }),
               CupertinoBottomBar(
                 index: _tabController.index,
