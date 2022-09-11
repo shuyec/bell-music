@@ -71,7 +71,15 @@ class MediaViewModel extends ChangeNotifier {
       _database = Database(_user!.uid);
       _audioPlayer = AudioPlayer();
       playButtonNotifier.value = ButtonState.loading;
-      checkIfQueueEmpty(_user!);
+
+      data = await _database.getUserData(uid: _user!.uid) as Map<String, dynamic>;
+      if (data["queue"].isNotEmpty) {
+        emptyQueueNotifier.value = false;
+        await updatePlayer();
+      } else {
+        isLoadingNotifier.value = false;
+        emptyQueueNotifier.value = true;
+      }
     }
   }
 
@@ -90,16 +98,6 @@ class MediaViewModel extends ChangeNotifier {
     }
     _audioPlayer.play();
     notifyListeners();
-  }
-
-  Future<void> checkIfQueueEmpty(User user) async {
-    final data = await _database.getUserData(uid: user.uid);
-    if (data!["queue"].isNotEmpty) {
-      emptyQueueNotifier.value = false;
-      await updatePlayer();
-    } else {
-      emptyQueueNotifier.value = true;
-    }
   }
 
   void updateIsLoading(bool isLoading) {
@@ -374,7 +372,7 @@ class MediaViewModel extends ChangeNotifier {
           return getResponse.data;
         }
       } catch (e) {
-        return {};
+        // return Future.error(e.toString());
       }
     }
     return {};
