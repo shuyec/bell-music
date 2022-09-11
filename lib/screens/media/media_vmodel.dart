@@ -119,7 +119,7 @@ class MediaViewModel extends ChangeNotifier {
     data = await _database.getUserData(uid: _user!.uid) as Map<String, dynamic>;
     String nowPlayingVideoId = data["nowPlaying"]["videoId"];
     originalQueue = data["queue"];
-    queue = originalQueue;
+    queue = [];
     notifyListeners();
     _playlist = ConcatenatingAudioSource(children: []);
     Duration playerPosition = parseDuration(data["nowPlaying"]["playerPosition"]);
@@ -127,21 +127,24 @@ class MediaViewModel extends ChangeNotifier {
     // RESOLVING AUDIO SOURCE
 
     List tempQueue = [];
-    // remove not playable tracks from queue and set nowPlayingIndex
-    for (int i = 0; i < queue.length; i++) {
-      if (queue[i]["videoId"] != null) {
-        tempQueue.add(queue[i]);
-        if (queue[i]["videoId"] == nowPlayingVideoId) {
-          nowPlayingIndex = i;
-        }
+    for (int i = 0; i < originalQueue.length; i++) {
+      if (originalQueue[i]["videoId"] != null) {
+        queue.add(originalQueue[i]);
+        tempQueue.add(originalQueue[i]);
       }
     }
-    queue = tempQueue;
+    originalQueue = tempQueue;
+
+    for (int i = 0; i < queue.length; i++) {
+      if (queue[i]["videoId"] == nowPlayingVideoId) {
+        nowPlayingIndex = i;
+      }
+    }
 
     final resolvingAudioSource = [
       for (int i = 0; i < queue.length; i++)
         ResolvingAudioSource(
-          uniqueId: queue[i]["videoId"],
+          uniqueId: originalQueue[i]["videoId"],
           resolveSoundUrl: ((uniqueId) async {
             uniqueId = queue[i]["videoId"];
             AudioMetadata? queueSong = await getMedia(videoId: queue[i]["videoId"]);
@@ -162,7 +165,7 @@ class MediaViewModel extends ChangeNotifier {
             }
             return null;
           }),
-          tag: queue[i],
+          tag: originalQueue[i],
         ),
     ];
     _playlist.addAll(resolvingAudioSource);
