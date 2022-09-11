@@ -135,7 +135,7 @@ class _MediaState extends State<Media> {
                                     child: Column(
                                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                       children: const [
-                                        Expanded(child: SizedBox.expand(child: FittedBox(child: ThumbnailMedia()))),
+                                        Expanded(child: Center(child: ThumbnailMedia())),
                                         RateButton(padding: padding),
                                         SizedBox(height: 10),
                                         // AddRemoveSongButtons(),
