@@ -1,7 +1,8 @@
 from ytmusicapi import YTMusic
 from flask import Flask, make_response, request
 from flask_restful import Api, Resource, reqparse, abort
-import youtube_dl
+# import youtube_dl
+import yt_dlp
 import os
 
 app = Flask(__name__)
@@ -80,12 +81,10 @@ class Media(Resource):
             ydl_opts = {
                 'format': 'bestaudio',
             }
-            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(
                     video_url, download=False)
-            audio_url = info['formats'][0]['url']
-            if "manifest" in audio_url:
-                audio_url = info['formats'][0]['fragment_base_url']
+            audio_url = info['url']
             media_details = media['videoDetails'] 
             data = {
                 "videoId": media_details["videoId"],
