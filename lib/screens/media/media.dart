@@ -383,8 +383,14 @@ class Lyrics extends StatelessWidget {
                       shrinkWrap: true,
                       children: [
                         Text(
-                          '"${data["title"]}" by $currentArtist',
+                          '"${data["title"]}"',
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          'by $currentArtist',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                          overflow: TextOverflow.ellipsis,
                         ),
                         Text(
                           data["lyrics"],
@@ -400,9 +406,11 @@ class Lyrics extends StatelessWidget {
                   ),
                 );
               } else {
-                child = const Text(
-                  "Lyrics not available",
-                  style: TextStyle(color: Colors.white),
+                child = const Center(
+                  child: Text(
+                    "Lyrics not available",
+                    style: TextStyle(color: Colors.white, fontSize: 20),
+                  ),
                 );
               }
             } else if (snapshot.hasError) {
