@@ -304,11 +304,15 @@ class Buttons extends StatelessWidget {
                               return rating2;
                             },
                           )
-                        : const IconButton(
-                            onPressed: null,
-                            icon: Icon(
-                              Iconsax.heart_slash,
-                              color: Colors.grey,
+                        : FittedBox(
+                            child: LikeButton(
+                              isLiked: null,
+                              likeBuilder: (_) {
+                                return const Icon(
+                                  Iconsax.heart_slash,
+                                  color: Colors.grey,
+                                );
+                              },
                             ),
                           ),
                     // IconButton(
@@ -344,6 +348,12 @@ class PlayShuffleButtons extends StatefulWidget {
 class _PlayShuffleButtonsState extends State<PlayShuffleButtons> {
   @override
   Widget build(BuildContext context) {
+    List tracks = [];
+    for (int i = 0; i < widget.tracks.length; i++) {
+      if (widget.tracks[i]["videoId"] != null) {
+        tracks.add(widget.tracks[i]);
+      }
+    }
     return Padding(
       padding: const EdgeInsets.only(left: 10, right: 10, bottom: 10),
       child: Row(
@@ -357,9 +367,9 @@ class _PlayShuffleButtonsState extends State<PlayShuffleButtons> {
                   onPressed: () async {
                     await _screenNavigator.visitPage(
                       context: context,
-                      mediaData: widget.tracks[0],
+                      mediaData: tracks[0],
                       type: "song",
-                      queue: widget.tracks,
+                      queue: tracks,
                     );
                   },
                   child: Row(
@@ -393,12 +403,12 @@ class _PlayShuffleButtonsState extends State<PlayShuffleButtons> {
                 )),
             child: TextButton(
                 onPressed: () async {
-                  int randomTrackNumber = Random().nextInt(widget.tracks.length) + 1;
+                  int randomTrackNumber = Random().nextInt(tracks.length) + 1;
                   await _screenNavigator.visitPage(
                     context: context,
-                    mediaData: widget.tracks[randomTrackNumber],
+                    mediaData: tracks[randomTrackNumber],
                     type: "song",
-                    queue: widget.tracks,
+                    queue: tracks,
                     shuffle: true,
                   );
                 },
@@ -520,16 +530,20 @@ class _TracksState extends State<Tracks> {
                                   },
                                 ),
                               )
-                            : const IconButton(
-                                onPressed: null,
-                                icon: Icon(
-                                  Iconsax.heart_slash,
-                                  color: Colors.grey,
+                            : FittedBox(
+                                child: LikeButton(
+                                  isLiked: null,
+                                  likeBuilder: (_) {
+                                    return const Icon(
+                                      Iconsax.heart_slash,
+                                      color: Colors.grey,
+                                    );
+                                  },
                                 ),
                               ),
                         title: Text(
                           widget.tracks[index]["title"].trim(),
-                          style: TextStyle(fontWeight: FontWeight.bold, color: color),
+                          style: TextStyle(fontWeight: FontWeight.bold, color: widget.tracks[index]["videoId"] == null ? Colors.grey : color),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
