@@ -54,7 +54,6 @@ class _MediaState extends State<Media> {
 
   @override
   Widget build(BuildContext context) {
-    final String? userName = _user.displayName;
     const padding = EdgeInsets.all(20.0);
     return StreamProvider<User?>.value(
       value: context.watch<Authentication>().userStream,
@@ -66,66 +65,7 @@ class _MediaState extends State<Media> {
               valueListenable: context.watch<MediaViewModel>().isLoadingNotifier,
               builder: (context, isLoading, child) {
                 return emptyQueue
-                    ? Scaffold(
-                        body: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Image.asset("assets/welcome.jpg"),
-                                Positioned(
-                                  top: 20,
-                                  child: Text(
-                                    "Welcome, ${userName!.split(" ")[0]}!",
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 30,
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  bottom: 10,
-                                  child: Column(
-                                    children: const [
-                                      Text(
-                                        "Your library is still empty!",
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                        ),
-                                      ),
-                                      SizedBox(height: 10),
-                                      Text(
-                                        "Find your best music in the search tab.",
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(
-                              width: 125,
-                              child: Transform.translate(
-                                offset: const Offset(-25, 50),
-                                child: Transform.scale(
-                                  scaleY: 2,
-                                  scaleX: 1.2,
-                                  child: Transform.rotate(
-                                    angle: 1.5708,
-                                    child: Image.asset(
-                                      "assets/arrow.gif",
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
+                    ? Welcome(user: _user)
                     : (!isLoading)
                         ? Scaffold(
                             appBar: AppBar(
@@ -212,6 +152,76 @@ class _MediaState extends State<Media> {
               },
             );
           }),
+    );
+  }
+}
+
+class Welcome extends StatelessWidget {
+  const Welcome({super.key, required this.user});
+  final User user;
+  @override
+  Widget build(BuildContext context) {
+    final String? userName = user.displayName;
+    return Scaffold(
+      body: Center(
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            Positioned(
+              top: 120,
+              child: Image.asset("assets/welcome.jpg"),
+            ),
+            Positioned(
+              top: 120,
+              child: Text(
+                "Welcome, ${userName!.split(" ")[0]}!",
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 30,
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 100,
+              child: Column(
+                children: [
+                  const Text(
+                    "Your library is still empty!",
+                    style: TextStyle(
+                      fontSize: 20,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Find your best music in the search tab.",
+                    style: TextStyle(
+                      fontSize: 20,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: 125,
+                    child: Transform.translate(
+                      offset: const Offset(-25, 50),
+                      child: Transform.scale(
+                        scaleY: 2,
+                        scaleX: 1.2,
+                        child: Transform.rotate(
+                          angle: 1.5708,
+                          child: Image.asset(
+                            "assets/arrow.gif",
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -367,6 +377,7 @@ class Lyrics extends StatelessWidget {
             if (snapshot.connectionState != ConnectionState.done) {
               return const Loading();
             } else if (snapshot.hasData) {
+              print("DEBUG SNAPSHOT LYRICS $data");
               if (data != null && data.isNotEmpty) {
                 late String currentArtist;
                 final artists = data["artists"];
