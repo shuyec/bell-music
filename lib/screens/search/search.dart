@@ -16,6 +16,23 @@ import 'package:provider/provider.dart';
 // This is the type used by the popup menu below.
 enum Menu { itemOne, itemTwo }
 
+final GlobalKey topResultKey = GlobalKey();
+final GlobalKey songsKey = GlobalKey();
+final GlobalKey albumsKey = GlobalKey();
+final GlobalKey artistsKey = GlobalKey();
+final GlobalKey videosKey = GlobalKey();
+final GlobalKey commPlaylistsKey = GlobalKey();
+final GlobalKey featPlaylistsKey = GlobalKey();
+final List keys = [
+  topResultKey,
+  songsKey,
+  albumsKey,
+  artistsKey,
+  videosKey,
+  commPlaylistsKey,
+  featPlaylistsKey,
+];
+
 class Search extends StatefulWidget {
   const Search({Key? key}) : super(key: key);
 
@@ -365,7 +382,7 @@ class _SearchResultsState extends State<SearchResults> {
                   } else if (snapshot.hasData) {
                     if (data != null && data.isNotEmpty) {
                       child = ListView.builder(
-                        key: ObjectKey(_value),
+                        key: keys[_value],
                         scrollDirection: Axis.vertical,
                         // shrinkWrap: true,
                         itemCount: data.length,
