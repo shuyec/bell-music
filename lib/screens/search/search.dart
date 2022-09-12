@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:bell/screen_navigator.dart';
 import 'package:bell/screens/media/media_vmodel.dart';
 import 'package:bell/services/database.dart';
@@ -44,17 +45,16 @@ late int _value;
 late bool isTextFieldEmpty;
 late bool isTextFieldFocused;
 late bool showFilters;
-late TextEditingController searchController;
-late FocusNode searchFocus;
 late CancelToken cancelToken;
-late String selectedMenu;
-late String query;
 late ScreenNavigator _screenNavigator;
 
 late User _user;
 late Database _database;
 
 class _SearchState extends State<Search> {
+  final TextEditingController searchController = TextEditingController();
+  final FocusNode searchFocus = FocusNode();
+
   void callSetState() {
     setState(() {});
   }
@@ -64,25 +64,21 @@ class _SearchState extends State<Search> {
     _user = FirebaseAuth.instance.currentUser!;
     _database = Database(_user.uid);
     cancelToken = CancelToken();
-    searchController = TextEditingController();
-    searchFocus = FocusNode();
     _screenNavigator = ScreenNavigator();
     _value = 0;
     isTextFieldEmpty = true;
     isTextFieldFocused = false;
     showFilters = false;
-    selectedMenu = "";
-    query = "";
     searchController.clear();
     super.initState();
   }
 
-  // @override
-  // void dispose() {
-  //   searchController.dispose();
-  //   searchFocus.dispose();
-  //   super.dispose();
-  // }
+  @override
+  void dispose() {
+    searchController.dispose();
+    searchFocus.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -117,11 +113,15 @@ class _SearchState extends State<Search> {
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SearchBar(callSetState: callSetState),
+            SearchBar(callSetState: callSetState, searchController: searchController, searchFocus: searchFocus),
             SearchFilters(callSetState: callSetState),
             // ignore: prefer_const_constructors
-            SearchHistory(),
-            SearchResults(callSetState: callSetState),
+            SearchHistory(searchFocus: searchFocus),
+            SearchResults(
+              callSetState: callSetState,
+              searchController: searchController,
+              searchFocus: searchFocus,
+            ),
           ],
         ),
       ),
@@ -130,23 +130,53 @@ class _SearchState extends State<Search> {
 }
 
 class SearchBar extends StatefulWidget {
-  const SearchBar({Key? key, required this.callSetState}) : super(key: key);
+  const SearchBar({Key? key, required this.callSetState, required this.searchController, required this.searchFocus}) : super(key: key);
 
   final Function callSetState;
+  final TextEditingController searchController;
+  final FocusNode searchFocus;
 
   @override
   State<SearchBar> createState() => _SearchBarState();
 }
 
 class _SearchBarState extends State<SearchBar> {
+  // TODO: bug query on submit different because _onSearchChanged does not change it
+  String query = "";
+  Timer? _debounce;
+
+  _onSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 100), () {
+      if (widget.searchController.text.isNotEmpty) {
+        query = widget.searchController.text;
+        isTextFieldEmpty = false;
+        showFilters = true;
+        isTextFieldFocused = true;
+      } else {
+        query = "";
+        isTextFieldEmpty = true;
+        showFilters = false;
+        isTextFieldFocused = false;
+      }
+      widget.callSetState();
+    });
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(5),
       child: TextField(
         style: const TextStyle(color: Colors.black),
-        focusNode: searchFocus,
-        controller: searchController,
+        focusNode: widget.searchFocus,
+        controller: widget.searchController,
         decoration: InputDecoration(
           contentPadding: const EdgeInsets.symmetric(vertical: 10),
           filled: true,
@@ -162,8 +192,8 @@ class _SearchBarState extends State<SearchBar> {
           prefixIcon: isTextFieldFocused || !isTextFieldEmpty
               ? IconButton(
                   onPressed: () {
-                    searchFocus.unfocus();
-                    searchController.clear();
+                    widget.searchFocus.unfocus();
+                    widget.searchController.clear();
                     isTextFieldFocused = false;
                     isTextFieldEmpty = true;
                     showFilters = false;
@@ -181,7 +211,7 @@ class _SearchBarState extends State<SearchBar> {
           suffixIcon: !isTextFieldEmpty
               ? IconButton(
                   onPressed: () {
-                    searchController.clear();
+                    widget.searchController.clear();
                     isTextFieldEmpty = true;
                     showFilters = false;
                     _value = 0;
@@ -199,22 +229,9 @@ class _SearchBarState extends State<SearchBar> {
           isTextFieldFocused = true;
           widget.callSetState();
         }),
-        onChanged: ((search) {
-          if (search.isNotEmpty) {
-            query = search;
-            isTextFieldEmpty = false;
-            showFilters = true;
-            isTextFieldFocused = true;
-            widget.callSetState();
-          } else {
-            query = "";
-            isTextFieldEmpty = true;
-            showFilters = false;
-            isTextFieldFocused = false;
-          }
-          widget.callSetState();
-        }),
-        onSubmitted: ((search) {
+        onChanged: _onSearchChanged,
+        onSubmitted: ((_) {
+          String search = widget.searchController.text;
           if (search != query && search.isNotEmpty) {
             query = search;
             isTextFieldEmpty = false;
@@ -353,15 +370,19 @@ class _SearchFiltersState extends State<SearchFilters> {
 }
 
 class SearchResults extends StatefulWidget {
-  const SearchResults({Key? key, required this.callSetState}) : super(key: key);
+  const SearchResults({Key? key, required this.callSetState, required this.searchController, required this.searchFocus}) : super(key: key);
 
   final Function callSetState;
+  final TextEditingController searchController;
+  final FocusNode searchFocus;
 
   @override
   State<SearchResults> createState() => _SearchResultsState();
 }
 
 class _SearchResultsState extends State<SearchResults> {
+  String selectedMenu = "";
+
   @override
   Widget build(BuildContext context) {
     return showFilters
@@ -369,7 +390,7 @@ class _SearchResultsState extends State<SearchResults> {
             valueListenable: context.watch<MediaViewModel>().currentVideoIdNotifier,
             builder: (context, currentVideoId, _) {
               return FutureBuilder<List?>(
-                future: SearchViewModel().createSearch(searchController.text, _value, cancelToken),
+                future: SearchViewModel().createSearch(widget.searchController.text, _value, cancelToken),
                 builder: (BuildContext context, AsyncSnapshot<List?> snapshot) {
                   Widget child;
                   final data = snapshot.data;
@@ -475,7 +496,7 @@ class _SearchResultsState extends State<SearchResults> {
                                   shape: RoundedRectangleBorder(
                                       borderRadius: currentVideoId == mediaData["videoId"] ? BorderRadius.circular(10) : BorderRadius.circular(100)),
                                   onTap: () async {
-                                    searchFocus.unfocus();
+                                    widget.searchFocus.unfocus();
                                     Map mediaData = data[index];
                                     _database.updateSearchHistory(search: mediaData);
                                     await _screenNavigator.visitPage(context: context, mediaData: mediaData, type: type);
@@ -636,7 +657,10 @@ class _SearchResultsState extends State<SearchResults> {
 }
 
 class SearchHistory extends StatefulWidget {
-  const SearchHistory({Key? key}) : super(key: key);
+  const SearchHistory({Key? key, required this.searchFocus}) : super(key: key);
+
+  final FocusNode searchFocus;
+
   @override
   State<SearchHistory> createState() => _SearchHistoryState();
 }
@@ -650,7 +674,7 @@ class _SearchHistoryState extends State<SearchHistory> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Padding(
-                  padding: EdgeInsets.fromLTRB(10, 5, 0, 5),
+                  padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
                   child: Text(
                     "Search history",
                     style: TextStyle(
@@ -706,7 +730,7 @@ class _SearchHistoryState extends State<SearchHistory> {
                                             borderRadius:
                                                 currentVideoId == mediaData["videoId"] ? BorderRadius.circular(10) : BorderRadius.circular(100)),
                                         onTap: () async {
-                                          searchFocus.unfocus();
+                                          widget.searchFocus.unfocus();
                                           await _screenNavigator.visitPage(context: context, mediaData: mediaData, type: type);
                                         },
                                         title: type == "artist"
