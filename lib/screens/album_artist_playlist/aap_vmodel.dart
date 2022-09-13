@@ -6,16 +6,71 @@ import 'package:flutter/material.dart';
 class AAPViewModel extends ChangeNotifier {
   final isAPLikedNotifier = ValueNotifier<bool>(false);
 
-  Future<bool> changeIsAPLiked({required bool isAPLiked, required String id, required String privacy}) async {
+  Future rateAlbumPlaylist({required String id, required String rating}) async {
+    late Response response;
+    late Response getResponse;
+    bool connectionSuccessful = false;
+    late String url;
+    if (id.substring(0, 7) == "OLAK5uy") {
+      url = "http://10.0.2.2:8000/api/album";
+    } else if (id.substring(0, 2) == "PL" || id.substring(0, 6) == "RDCLAK") {
+      url = "http://10.0.2.2:8000/api/playlist";
+    } else {
+      return null;
+    }
+
+    Dio dio = Dio();
+    dio.options.contentType = 'application/json; charset=UTF-8';
+    dio.options.headers['Connection'] = 'Keep-Alive';
+    dio.options.headers["Accept"] = "application/json";
+
+    while (!connectionSuccessful) {
+      try {
+        response = await dio.post(
+          url,
+          data: {
+            'browseId': id,
+            "rating": rating,
+          },
+          options: Options(
+              followRedirects: true,
+              validateStatus: (status) {
+                if (status == 500) {
+                  return true;
+                }
+                return status! < 500;
+              }),
+        );
+        String resphead = response.headers["location"]![0].toString();
+        getResponse = await dio.post(
+          resphead,
+          data: {
+            'browseId': id,
+            "rating": rating,
+          },
+        );
+        if (getResponse.statusCode == 200) {
+          connectionSuccessful = true;
+          return getResponse.data;
+        }
+      } catch (e) {
+        // print("errore è ${e.toString()}");
+        // return Future.error(e.toString());
+      }
+    }
+    return null;
+  }
+
+  bool changeIsAPLiked({required bool isAPLiked, required String id, required String privacy}) {
     late String rate;
     if (id == "LM" || privacy == "PRIVATE") {
       return true;
     } else if (isAPLiked) {
       rate = "INDIFFERENT";
-      LibraryViewModel().rateAlbumPlaylist(id: id, rating: rate);
+      rateAlbumPlaylist(id: id, rating: rate);
     } else {
       rate = "LIKE";
-      LibraryViewModel().rateAlbumPlaylist(id: id, rating: rate);
+      rateAlbumPlaylist(id: id, rating: rate);
     }
     isAPLikedNotifier.value = !isAPLiked;
     return !isAPLiked;
@@ -71,6 +126,10 @@ class AAPViewModel extends ChangeNotifier {
             late bool isAPInLibrary;
             bool areHeadersPresent = await Authentication().checkIfHeadersPresent();
             if (areHeadersPresent) {
+              // for featured playlists
+              if (browseId.substring(0, 7) == "VLRDCLA") {
+                browseId = browseId.substring(2);
+              }
               isAPInLibrary = await LibraryViewModel().checkIfInLibrary(browseId);
               isAPLikedNotifier.value = isAPInLibrary;
             } else {

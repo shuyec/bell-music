@@ -68,7 +68,7 @@ class _AlbumPlaylistState extends State<AlbumPlaylist> {
               if (type == "album") {
                 id = data["audioPlaylistId"];
                 rating = data["rating"];
-              } else if (type == "playlist") {
+              } else if (type == "playlist" || data["author"]["name"] == "YouTube Music") {
                 privacy = data["privacy"];
                 id = data["id"];
                 rating = data["rating"];
@@ -298,8 +298,8 @@ class Buttons extends StatelessWidget {
                                     );
                             },
                             onTap: (_) async {
-                              isAPLiked = await Provider.of<AAPViewModel>(context, listen: false)
-                                  .changeIsAPLiked(isAPLiked: isAPLiked, id: id, privacy: privacy);
+                              isAPLiked =
+                                  Provider.of<AAPViewModel>(context, listen: false).changeIsAPLiked(isAPLiked: isAPLiked, id: id, privacy: privacy);
                               rating2 = isAPLiked;
                               return rating2;
                             },
