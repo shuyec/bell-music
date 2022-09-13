@@ -68,7 +68,7 @@ class _AlbumPlaylistState extends State<AlbumPlaylist> {
               if (type == "album") {
                 id = data["audioPlaylistId"];
                 rating = data["rating"];
-              } else if (type == "playlist" || data["author"]["name"] == "YouTube Music") {
+              } else if (type == "playlist" || (data["author"] != null && data["author"]["name"] == "YouTube Music")) {
                 privacy = data["privacy"];
                 id = data["id"];
                 rating = data["rating"];
