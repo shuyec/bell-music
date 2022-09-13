@@ -71,8 +71,11 @@ class Media(Resource):
         if lyrics:
             watch_playlist = ytmusic.get_watch_playlist(video_id)
             response = watch_playlist["tracks"][0]
-            lyrics = ytmusic.get_lyrics(watch_playlist["lyrics"])
-            response.update(lyrics)
+            try:
+                lyrics = ytmusic.get_lyrics(watch_playlist["lyrics"])
+                response.update(lyrics)
+            except:
+                return {}
         elif rating == None:
             media = ytmusic.get_song(video_id)
             if media['playabilityStatus']['status'] == 'ERROR':
