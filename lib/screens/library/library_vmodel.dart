@@ -1,63 +1,8 @@
 import 'package:dio/dio.dart';
 
 class LibraryViewModel {
-  Future rateAlbumPlaylist({required String id, required String rating}) async {
-    late Response response;
-    late Response getResponse;
-    bool connectionSuccessful = false;
-    late String url;
-    if (id.substring(0, 7) == "OLAK5uy") {
-      url = "http://10.0.2.2:8000/api/album";
-    } else if (id.substring(0, 2) == "PL") {
-      url = "http://10.0.2.2:8000/api/playlist";
-    } else {
-      return null;
-    }
-
-    Dio dio = Dio();
-    dio.options.contentType = 'application/json; charset=UTF-8';
-    dio.options.headers['Connection'] = 'Keep-Alive';
-    dio.options.headers["Accept"] = "application/json";
-
-    while (!connectionSuccessful) {
-      try {
-        response = await dio.post(
-          url,
-          data: {
-            'browseId': id,
-            "rating": rating,
-          },
-          options: Options(
-              followRedirects: true,
-              validateStatus: (status) {
-                if (status == 500) {
-                  return true;
-                }
-                return status! < 500;
-              }),
-        );
-        String resphead = response.headers["location"]![0].toString();
-        getResponse = await dio.post(
-          resphead,
-          data: {
-            'browseId': id,
-            "rating": rating,
-          },
-        );
-        if (getResponse.statusCode == 200) {
-          connectionSuccessful = true;
-          return getResponse.data;
-        }
-      } catch (e) {
-        // print("errore è ${e.toString()}");
-        // return Future.error(e.toString());
-      }
-    }
-    return null;
-  }
-
   Future<bool> checkIfInLibrary(String id) async {
-    if (id.substring(0, 2) == "PL") {
+    if (id.substring(0, 2) == "PL" || id.substring(0, 5) == "RDCLA") {
       List? libraryPlaylists = await getLibraryPlaylists();
       if (libraryPlaylists != null) {
         for (final playlist in libraryPlaylists) {
