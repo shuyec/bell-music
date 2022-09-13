@@ -121,7 +121,6 @@ class Playlist(Resource):
         arguments = album_post_args.parse_args()
         browse_id = arguments["browseId"]
         rating = arguments["rating"]
-        print(rating)
         if browse_id == None:
             abort(400, message="Browse Id needed")
         if rating == None:
