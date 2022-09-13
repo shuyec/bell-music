@@ -377,7 +377,6 @@ class Lyrics extends StatelessWidget {
             if (snapshot.connectionState != ConnectionState.done) {
               return const Loading();
             } else if (snapshot.hasData) {
-              print("DEBUG SNAPSHOT LYRICS $data");
               if (data != null && data.isNotEmpty) {
                 late String currentArtist;
                 final artists = data["artists"];
