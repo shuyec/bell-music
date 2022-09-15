@@ -8,21 +8,11 @@ import 'package:provider/provider.dart';
 
 class ScreenNavigator {
   void goToLogin({required BuildContext context}) {
-    // Navigator.popAndPushNamed(context, "/");
     Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
-    // Navigator.of(context, rootNavigator: true).popAndPushNamed("/");
   }
 
   void goToBell({required BuildContext context}) {
     Navigator.pushNamedAndRemoveUntil(context, "/", ((Route<dynamic> route) => false));
-
-    // Navigator.pushAndRemoveUntil(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (_) => const Bell(),
-    //   ),
-    //   (_) => false,
-    // );
   }
 
   void goToArtistAlbums({required BuildContext context, required Map data, required String artist}) {
@@ -47,10 +37,6 @@ class ScreenNavigator {
       useRootNavigator: true,
       bounce: true,
       builder: (context) {
-        // return ListenableProvider.value(
-        //     value: Provider.of<MediaViewModel>(context, listen: true),
-        //     child: Media(mediaVM: Provider.of<MediaViewModel>(context, listen: false)),
-        //   );
         return const Media();
       },
     );
@@ -64,6 +50,7 @@ class ScreenNavigator {
     // openMediaModal(context);
 
     await mediaVMProvider.updatePlayer();
+    mediaVMProvider.play();
   }
 
   void goToAAP({required BuildContext context, required Map mediaData, required String type, String artist = ""}) {
