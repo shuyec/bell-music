@@ -12,10 +12,8 @@ import 'package:bell/screens/search/search_vmodel.dart';
 import 'package:dio/dio.dart';
 import 'package:iconly/iconly.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
-
-// This is the type used by the popup menu below.
-enum Menu { itemOne, itemTwo }
 
 final GlobalKey topResultKey = GlobalKey();
 final GlobalKey songsKey = GlobalKey();
@@ -369,6 +367,110 @@ class _SearchFiltersState extends State<SearchFilters> {
   }
 }
 
+class SearchResultTitle extends StatelessWidget {
+  const SearchResultTitle({super.key, required this.type, required this.mediaData, required this.color});
+  final String type;
+  final Map mediaData;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return type == "artist"
+        ? Text(
+            mediaData["artist"],
+            style: const TextStyle(fontWeight: FontWeight.bold),
+            overflow: TextOverflow.ellipsis,
+          )
+        : Text(
+            mediaData["title"],
+            style: TextStyle(fontWeight: FontWeight.bold, color: color),
+            overflow: TextOverflow.ellipsis,
+          );
+  }
+}
+
+class SearchResultSubtitle extends StatelessWidget {
+  const SearchResultSubtitle({super.key, required this.color, required this.mediaData, required this.type});
+  final Color color;
+  final Map mediaData;
+  final String type;
+
+  @override
+  Widget build(BuildContext context) {
+    return type == "song"
+        ? Row(
+            children: [
+              mediaData["isExplicit"] == true
+                  ? Row(
+                      children: [
+                        Icon(
+                          Icons.explicit_rounded,
+                          color: color,
+                          size: 20,
+                        ),
+                        const Text(" "),
+                      ],
+                    )
+                  : const Text(""),
+              Flexible(
+                fit: FlexFit.loose,
+                child: Text(
+                  "${capitalize(type)} • ${mediaData["duration"]} • ${getArtists(mediaData["artists"])} • ${mediaData["album"]["name"]}",
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: color),
+                ),
+              ),
+            ],
+          )
+        : type == "artist"
+            ? Text(
+                capitalize(type),
+                overflow: TextOverflow.ellipsis,
+              )
+            : type == "album"
+                ? Row(
+                    children: [
+                      mediaData["isExplicit"] == true
+                          ? Row(
+                              children: const [
+                                Icon(
+                                  Icons.explicit_rounded,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                Text(" "),
+                              ],
+                            )
+                          : const SizedBox(),
+                      Flexible(
+                        fit: FlexFit.loose,
+                        child: mediaData["artists"].isNotEmpty
+                            ? Text(
+                                "${capitalize(type)} • ${getArtists(mediaData["artists"])} • ${mediaData["year"]}",
+                                overflow: TextOverflow.ellipsis,
+                              )
+                            : Text(
+                                "${capitalize(type)} • ${mediaData["year"]}",
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                      ),
+                    ],
+                  )
+                : mediaData["resultType"] == "playlist"
+                    ? Text(
+                        "${capitalize(type)} • ${mediaData["author"]} • ${mediaData["itemCount"]} Songs",
+                        overflow: TextOverflow.ellipsis,
+                      )
+                    : mediaData["resultType"] == "video"
+                        ? Text(
+                            "${capitalize(type)} • ${mediaData["duration"]} • ${getArtists(mediaData["artists"])} • ${mediaData["views"]}",
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(color: color),
+                          )
+                        : const SizedBox();
+  }
+}
+
 class SearchResults extends StatefulWidget {
   const SearchResults({Key? key, required this.callSetState, required this.searchController, required this.searchFocus}) : super(key: key);
 
@@ -417,13 +519,17 @@ class _SearchResultsState extends State<SearchResults> {
                           String thumbnail = mediaData["thumbnails"][0]["url"];
                           Color color = currentVideoId == mediaData["videoId"] ? Colors.black : Colors.white;
                           Color tileColor = currentVideoId == mediaData["videoId"] ? Colors.white : Colors.black;
+                          Widget resultThumbnail = ClipRRect(
+                            borderRadius: const BorderRadius.all(Radius.circular(6.0)),
+                            child: SizedBox(height: 60, width: 60, child: Image.network(thumbnail)),
+                          );
                           return Column(
                             children: [
                               data[0]["category"] == "Top result" && categories[category] == index
                                   ? ListTile(
                                       onTap: category != "Top result"
                                           ? () {
-                                              switch (data[index]["category"]) {
+                                              switch (mediaData["category"]) {
                                                 case "Songs":
                                                   {
                                                     cancelToken.cancel();
@@ -497,126 +603,89 @@ class _SearchResultsState extends State<SearchResults> {
                                       borderRadius: currentVideoId == mediaData["videoId"] ? BorderRadius.circular(10) : BorderRadius.circular(100)),
                                   onTap: () async {
                                     widget.searchFocus.unfocus();
-                                    Map mediaData = data[index];
                                     _database.updateSearchHistory(search: mediaData);
                                     await _screenNavigator.visitPage(context: context, mediaData: mediaData, type: type);
                                   },
-                                  title: type == "artist"
-                                      ? Text(
-                                          mediaData["artist"],
-                                          style: const TextStyle(fontWeight: FontWeight.bold),
-                                          overflow: TextOverflow.ellipsis,
-                                        )
-                                      : Text(
-                                          mediaData["title"],
-                                          style: TextStyle(fontWeight: FontWeight.bold, color: color),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
+                                  title: SearchResultTitle(color: color, mediaData: mediaData, type: type),
                                   leading: type == "artist"
                                       ? CircleAvatar(
                                           radius: 30,
                                           backgroundImage: NetworkImage(thumbnail),
                                         )
-                                      : ClipRRect(
-                                          borderRadius: const BorderRadius.all(Radius.circular(6.0)),
-                                          child: SizedBox(height: 60, width: 60, child: Image.network(thumbnail)),
-                                        ),
+                                      : resultThumbnail,
                                   trailing: type == "song" || type == "video"
-                                      ? PopupMenuButton(
-                                          color: Colors.grey[900],
-                                          child: Icon(
+                                      ? IconButton(
+                                          onPressed: () {
+                                            showMaterialModalBottomSheet(
+                                              context: context,
+                                              backgroundColor: Colors.black,
+                                              shape: const RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+                                              ),
+                                              useRootNavigator: true,
+                                              bounce: true,
+                                              builder: (cxt) {
+                                                return Column(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    ListTile(
+                                                      shape: const RoundedRectangleBorder(
+                                                          borderRadius:
+                                                              BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20))),
+                                                      tileColor: Colors.grey[850],
+                                                      leading: resultThumbnail,
+                                                      title: SearchResultTitle(color: Colors.white, mediaData: mediaData, type: type),
+                                                      subtitle: SearchResultSubtitle(
+                                                        color: Colors.white,
+                                                        mediaData: mediaData,
+                                                        type: type,
+                                                      ),
+                                                      trailing: IconButton(
+                                                          constraints: const BoxConstraints(),
+                                                          padding: EdgeInsets.zero,
+                                                          onPressed: () => Navigator.pop(cxt),
+                                                          icon: const Icon(
+                                                            Icons.close,
+                                                            color: Colors.white,
+                                                          )),
+                                                    ),
+                                                    // ListTile(
+                                                    //   onTap: () => Provider.of<MediaViewModel>(context, listen: false).addSong(mediaData),
+                                                    //   title: const Text("Add to queue"),
+                                                    //   leading: const Icon(Icons.queue_music, color: Colors.white),
+                                                    // ),
+                                                    ListTile(
+                                                      onTap: (() {
+                                                        Navigator.pop(context);
+                                                        _screenNavigator.visitPage(
+                                                            context: context,
+                                                            mediaData: {"browseId": data[index]["artists"][0]["id"], "resultType": "artist"},
+                                                            type: "artist");
+                                                      }),
+                                                      title: const Text("Go to artist"),
+                                                      leading: const Icon(Iconsax.user, color: Colors.white),
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            );
+                                          },
+                                          icon: Icon(
                                             Iconsax.more_24,
                                             color: color,
                                           ),
-                                          onSelected: (Menu item) {
-                                            selectedMenu = item.name;
-                                            widget.callSetState();
-                                          },
-                                          itemBuilder: (BuildContext context) => <PopupMenuEntry<Menu>>[
-                                                const PopupMenuItem<Menu>(
-                                                  value: Menu.itemOne,
-                                                  child: Text('Item 1'),
-                                                ),
-                                                const PopupMenuItem<Menu>(
-                                                  value: Menu.itemTwo,
-                                                  child: Text('Item 2'),
-                                                ),
-                                              ])
+                                          padding: EdgeInsets.zero,
+                                          constraints: const BoxConstraints(),
+                                        )
                                       : Icon(
                                           Iconsax.arrow_right_3,
                                           color: color,
                                         ),
-                                  subtitle: type == "song"
-                                      ? Row(
-                                          children: [
-                                            mediaData["isExplicit"] == true
-                                                ? Row(
-                                                    children: [
-                                                      Icon(
-                                                        Icons.explicit_rounded,
-                                                        color: color,
-                                                        size: 20,
-                                                      ),
-                                                      const Text(" "),
-                                                    ],
-                                                  )
-                                                : const Text(""),
-                                            Flexible(
-                                              fit: FlexFit.loose,
-                                              child: Text(
-                                                "${capitalize(type)} • ${mediaData["duration"]} • ${getArtists(mediaData["artists"])} • ${mediaData["album"]["name"]}",
-                                                overflow: TextOverflow.ellipsis,
-                                                style: TextStyle(color: color),
-                                              ),
-                                            ),
-                                          ],
-                                        )
-                                      : type == "artist"
-                                          ? Text(
-                                              capitalize(type),
-                                              overflow: TextOverflow.ellipsis,
-                                            )
-                                          : type == "album"
-                                              ? Row(
-                                                  children: [
-                                                    mediaData["isExplicit"] == true
-                                                        ? Row(
-                                                            children: const [
-                                                              Icon(
-                                                                Icons.explicit_rounded,
-                                                                color: Colors.white,
-                                                                size: 20,
-                                                              ),
-                                                              Text(" "),
-                                                            ],
-                                                          )
-                                                        : const SizedBox(),
-                                                    Flexible(
-                                                      fit: FlexFit.loose,
-                                                      child: mediaData["artists"].isNotEmpty
-                                                          ? Text(
-                                                              "${capitalize(type)} • ${getArtists(mediaData["artists"])} • ${mediaData["year"]}",
-                                                              overflow: TextOverflow.ellipsis,
-                                                            )
-                                                          : Text(
-                                                              "${capitalize(type)} • ${mediaData["year"]}",
-                                                              overflow: TextOverflow.ellipsis,
-                                                            ),
-                                                    ),
-                                                  ],
-                                                )
-                                              : data[index]["resultType"] == "playlist"
-                                                  ? Text(
-                                                      "${capitalize(type)} • ${mediaData["author"]} • ${mediaData["itemCount"]} Songs",
-                                                      overflow: TextOverflow.ellipsis,
-                                                    )
-                                                  : data[index]["resultType"] == "video"
-                                                      ? Text(
-                                                          "${capitalize(type)} • ${mediaData["duration"]} • ${getArtists(mediaData["artists"])} • ${mediaData["views"]}",
-                                                          overflow: TextOverflow.ellipsis,
-                                                          style: TextStyle(color: color),
-                                                        )
-                                                      : null,
+                                  subtitle: SearchResultSubtitle(
+                                    color: color,
+                                    mediaData: mediaData,
+                                    type: type,
+                                  ),
                                 ),
                               ),
                             ],
