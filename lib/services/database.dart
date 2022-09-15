@@ -7,6 +7,16 @@ class Database {
 
   final CollectionReference usersCollection = FirebaseFirestore.instance.collection('users');
 
+  void updateQueue(Map media) async {
+    final userDoc = usersCollection.doc(uid);
+    final userData = await getUserData(uid: uid);
+    List queue = userData!["queue"];
+    queue.add(media);
+    userDoc.update({
+      "queue": queue,
+    });
+  }
+
   void updateUserData({required List queue, required Map nowPlaying}) {
     final userDoc = usersCollection.doc(uid);
     userDoc.update({
