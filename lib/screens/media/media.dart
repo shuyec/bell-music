@@ -138,7 +138,6 @@ class _MediaState extends State<Media> {
                                         Expanded(child: Center(child: ThumbnailMedia())),
                                         RateButton(padding: padding),
                                         SizedBox(height: 10),
-                                        // AddRemoveSongButtons(),
                                         AudioProgressBar(),
                                         // AudioControlButtons(),
                                       ],
@@ -432,31 +431,6 @@ class Lyrics extends StatelessWidget {
             return child;
           },
         ),
-      ),
-    );
-  }
-}
-
-class AddRemoveSongButtons extends StatelessWidget {
-  const AddRemoveSongButtons({Key? key}) : super(key: key);
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          FloatingActionButton(
-            heroTag: "addSong",
-            onPressed: context.watch<MediaViewModel>().addSong,
-            child: const Icon(Icons.add),
-          ),
-          FloatingActionButton(
-            heroTag: "removeSong",
-            onPressed: context.watch<MediaViewModel>().removeSong,
-            child: const Icon(Icons.remove),
-          ),
-        ],
       ),
     );
   }
