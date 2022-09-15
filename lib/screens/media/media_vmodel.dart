@@ -96,7 +96,7 @@ class MediaViewModel extends ChangeNotifier {
     if (isLoadingNotifier.value == true) {
       updateIsLoading(false);
     }
-    _audioPlayer.play();
+    // _audioPlayer.play();
     notifyListeners();
   }
 
@@ -319,10 +319,37 @@ class MediaViewModel extends ChangeNotifier {
     _database.updateNowPlayingData(audioplayer: _audioPlayer, onShuffleClick: true);
   }
 
-  void addSong() {
-    final songNumber = _playlist.length + 1;
-    final song = Uri.parse('TODO audio url');
-    _playlist.add(AudioSource.uri(song, tag: 'Song $songNumber'));
+// TODO: does not work
+  void addSong(Map media) {
+    // final songNumber = _playlist.length + 1;
+    // final song = Uri.parse('TODO audio url');
+    // _playlist.add(AudioSource.uri(song, tag: 'Song $songNumber'));
+    _database.updateQueue(media);
+    _playlist.add(
+      ResolvingAudioSource(
+        uniqueId: media["videoId"],
+        resolveSoundUrl: ((uniqueId) async {
+          uniqueId = media["videoId"];
+          AudioMetadata? queueSong = await getMedia(videoId: media["videoId"]);
+          if (queueSong != null) {
+            queueSongData = {
+              "title": queueSong.title,
+              "artists": queueSong.artists,
+              "songUrl": queueSong.mediaUrl,
+              "thumbnailUrl": queueSong.thumbnailUrl,
+              "videoId": queueSong.videoId,
+            };
+            queue.add(queueSongData);
+            currentMediaArtists = queueSong.artists;
+            thumbnailUrl = queueSong.thumbnailUrl;
+            _database.updateNowPlayingData(audioplayer: _audioPlayer, songData: queueSongData);
+            return Uri.parse(queueSong.mediaUrl);
+          }
+          return null;
+        }),
+        tag: media,
+      ),
+    );
   }
 
   void removeSong() {
