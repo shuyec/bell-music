@@ -12,6 +12,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:bell/widgets/error.dart';
 import 'dart:math';
 import 'package:like_button/like_button.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 
 class AlbumPlaylist extends StatefulWidget {
@@ -90,7 +91,22 @@ class _AlbumPlaylistState extends State<AlbumPlaylist> {
                         const SizedBox(height: 90),
                         Thumbnail(thumbnails: thumbnails),
                         MediaInfo(data: data, artist: artist),
-                        privacy == "PRIVATE" ? Buttons(id: id, rating: rating, privacy: privacy) : Buttons(id: id, rating: rating),
+                        privacy == "PRIVATE"
+                            ? Buttons(
+                                id: id,
+                                rating: rating,
+                                privacy: privacy,
+                                thumbnails: thumbnails,
+                                data: data,
+                                artist: artist,
+                              )
+                            : Buttons(
+                                id: id,
+                                rating: rating,
+                                thumbnails: thumbnails,
+                                data: data,
+                                artist: artist,
+                              ),
                         PlayShuffleButtons(tracks: tracks),
                         Tracks(
                           tracks: tracks,
@@ -264,10 +280,16 @@ class MediaInfo extends StatelessWidget {
 }
 
 class Buttons extends StatelessWidget {
-  const Buttons({Key? key, required this.id, required this.rating, this.privacy = "PUBLIC"}) : super(key: key);
+  const Buttons(
+      {Key? key, required this.id, required this.rating, this.privacy = "PUBLIC", required this.thumbnails, required this.data, required this.artist})
+      : super(key: key);
   final String id;
   final bool rating;
   final String privacy;
+  final List thumbnails;
+  final Map data;
+  final String artist;
+
   @override
   Widget build(BuildContext context) {
     bool rating2 = rating;
@@ -321,12 +343,74 @@ class Buttons extends StatelessWidget {
                     //   padding: EdgeInsets.zero,
                     //   constraints: const BoxConstraints(),
                     // ),
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(IconlyBroken.more_square),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
+                    data["title"] != "Songs"
+                        ? IconButton(
+                            onPressed: () {
+                              showMaterialModalBottomSheet(
+                                context: context,
+                                backgroundColor: Colors.black,
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+                                ),
+                                useRootNavigator: true,
+                                bounce: true,
+                                builder: (cxt) {
+                                  final String? browseId = data["artists"][0]["id"];
+                                  return Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      ListTile(
+                                        shape: const RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20))),
+                                        tileColor: Colors.grey[850],
+                                        leading: Image.network(thumbnails[0]["url"]),
+                                        title: Text(
+                                          data["title"],
+                                          style: const TextStyle(fontWeight: FontWeight.bold),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        subtitle: Text(
+                                          artist,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        trailing: IconButton(
+                                            constraints: const BoxConstraints(),
+                                            padding: EdgeInsets.zero,
+                                            onPressed: () => Navigator.pop(context),
+                                            icon: const Icon(
+                                              Icons.close,
+                                              color: Colors.white,
+                                            )),
+                                      ),
+                                      // ListTile(
+                                      //   onTap: () => Provider.of<MediaViewModel>(context, listen: false).addSong(mediaData),
+                                      //   title: const Text("Add to queue"),
+                                      //   leading: const Icon(Icons.queue_music, color: Colors.white),
+                                      // ),
+                                      ListTile(
+                                        onTap: (() {
+                                          if (browseId != null) {
+                                            Navigator.pop(cxt);
+                                            _screenNavigator.visitPage(
+                                                context: context, mediaData: {"browseId": browseId, "resultType": "artist"}, type: "artist");
+                                          }
+                                        }),
+                                        title: const Text("Go to artist"),
+                                        leading: Icon(Iconsax.user, color: browseId != null ? Colors.white : Colors.grey[800]),
+                                        enabled: browseId != null ? true : false,
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                            icon: const Icon(IconlyBroken.more_square),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          )
+                        : const SizedBox(),
                   ],
                 ),
               );
