@@ -57,6 +57,7 @@ class CustomMarquee extends StatelessWidget {
                 child: Text(
                   text,
                   style: style,
+                  maxLines: 1,
                 ),
               )
         : willTextOverflow(
@@ -89,6 +90,7 @@ class CustomMarquee extends StatelessWidget {
                 child: Text(
                   text,
                   style: style,
+                  maxLines: 1,
                 ),
               );
   }
