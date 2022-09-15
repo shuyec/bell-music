@@ -656,7 +656,7 @@ class _SearchResultsState extends State<SearchResults> {
                                                     // ),
                                                     ListTile(
                                                       onTap: (() {
-                                                        Navigator.pop(context);
+                                                        Navigator.pop(cxt);
                                                         _screenNavigator.visitPage(
                                                             context: context,
                                                             mediaData: {"browseId": data[index]["artists"][0]["id"], "resultType": "artist"},
