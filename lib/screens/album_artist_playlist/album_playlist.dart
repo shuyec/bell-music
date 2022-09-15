@@ -297,6 +297,7 @@ class Buttons extends StatelessWidget {
           return ValueListenableBuilder<bool>(
             valueListenable: Provider.of<AAPViewModel>(context, listen: true).isAPLikedNotifier,
             builder: (context, isAPLiked, _) {
+              bool isPlaylist = data["id"] != null && (data["id"].contains("RDCLAK5uy") || data["id"].substring(0, 2) == "PL");
               isAPLiked = rating2;
               return Padding(
                 padding: const EdgeInsets.only(top: 10, bottom: 10),
@@ -335,13 +336,12 @@ class Buttons extends StatelessWidget {
                               },
                             ),
                           ),
-                    // IconButton(
-                    //   onPressed: () {},
-                    //   icon: const Icon(IconlyBroken.download),
-                    //   padding: EdgeInsets.zero,
-                    //   constraints: const BoxConstraints(),
-                    // ),
-                    if (data["title"] != "Songs" && data["title"] != "Your Likes" && data["title"] != "Songs" && data["title"] != "Videos")
+                    // TODO: playlists more button
+                    if (data["title"] != "Songs" &&
+                        data["title"] != "Your Likes" &&
+                        data["title"] != "Songs" &&
+                        data["title"] != "Videos" &&
+                        !isPlaylist)
                       IconButton(
                         onPressed: () {
                           showMaterialModalBottomSheet(
@@ -404,6 +404,13 @@ class Buttons extends StatelessWidget {
                             },
                           );
                         },
+                        icon: const Icon(IconlyBroken.more_square),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    if (isPlaylist)
+                      IconButton(
+                        onPressed: (() {}),
                         icon: const Icon(IconlyBroken.more_square),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
