@@ -53,80 +53,84 @@ class _AlbumPlaylistState extends State<AlbumPlaylist> {
         // ],
         backgroundColor: Colors.transparent,
       ),
-      body: FutureBuilder<Map?>(
-        future: future,
-        builder: (BuildContext context, AsyncSnapshot<Map?> snapshot) {
-          Widget child;
-          final data = snapshot.data;
+      body: ValueListenableBuilder(
+          valueListenable: context.watch<MediaViewModel>().currentVideoIdNotifier,
+          builder: (context, _, __) {
+            return FutureBuilder<Map?>(
+              future: future,
+              builder: (BuildContext context, AsyncSnapshot<Map?> snapshot) {
+                Widget child;
+                final data = snapshot.data;
 
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const Loading();
-          } else if (snapshot.hasData) {
-            if (data != null && data.isNotEmpty) {
-              late bool rating;
-              late String id;
-              String privacy = "PUBLIC";
-              if (type == "album") {
-                id = data["audioPlaylistId"];
-                rating = data["rating"];
-              } else if (type == "playlist" || (data["author"] != null && data["author"]["name"] == "YouTube Music")) {
-                privacy = data["privacy"];
-                id = data["id"];
-                rating = data["rating"];
-              } else {
-                id = data["id"];
-                rating = true;
-              }
-              List tracks = data["tracks"];
-              List thumbnails = data["thumbnails"];
-              child = SingleChildScrollView(
-                child: Stack(
-                  alignment: Alignment.topCenter,
-                  children: [
-                    ThumbnailBackground(thumbnails: thumbnails),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 90),
-                        Thumbnail(thumbnails: thumbnails),
-                        MediaInfo(data: data, artist: artist),
-                        privacy == "PRIVATE"
-                            ? Buttons(
-                                id: id,
-                                rating: rating,
-                                privacy: privacy,
-                                data: data,
-                                artist: artist,
-                              )
-                            : Buttons(
-                                id: id,
-                                rating: rating,
-                                data: data,
-                                artist: artist,
+                if (snapshot.connectionState != ConnectionState.done) {
+                  return const Loading();
+                } else if (snapshot.hasData) {
+                  if (data != null && data.isNotEmpty) {
+                    late bool rating;
+                    late String id;
+                    String privacy = "PUBLIC";
+                    if (type == "album") {
+                      id = data["audioPlaylistId"];
+                      rating = data["rating"];
+                    } else if (type == "playlist" || (data["author"] != null && data["author"]["name"] == "YouTube Music")) {
+                      privacy = data["privacy"];
+                      id = data["id"];
+                      rating = data["rating"];
+                    } else {
+                      id = data["id"];
+                      rating = true;
+                    }
+                    List tracks = data["tracks"];
+                    List thumbnails = data["thumbnails"];
+                    child = SingleChildScrollView(
+                      child: Stack(
+                        alignment: Alignment.topCenter,
+                        children: [
+                          ThumbnailBackground(thumbnails: thumbnails),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              const SizedBox(height: 90),
+                              Thumbnail(thumbnails: thumbnails),
+                              MediaInfo(data: data, artist: artist),
+                              privacy == "PRIVATE"
+                                  ? Buttons(
+                                      id: id,
+                                      rating: rating,
+                                      privacy: privacy,
+                                      data: data,
+                                      artist: artist,
+                                    )
+                                  : Buttons(
+                                      id: id,
+                                      rating: rating,
+                                      data: data,
+                                      artist: artist,
+                                    ),
+                              PlayShuffleButtons(tracks: tracks),
+                              Tracks(
+                                tracks: tracks,
+                                playlistTitle: data["title"],
                               ),
-                        PlayShuffleButtons(tracks: tracks),
-                        Tracks(
-                          tracks: tracks,
-                          playlistTitle: data["title"],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            } else {
-              child = const Error(error: "Error: no album data");
-            }
-          } else if (snapshot.hasError) {
-            String error = "Connection error. Try again.";
-            return Error(error: error);
-          } else {
-            child = const Loading();
-          }
-          return child;
-        },
-      ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  } else {
+                    child = const Error(error: "Error: no album data");
+                  }
+                } else if (snapshot.hasError) {
+                  String error = "Connection error. Try again.";
+                  return Error(error: error);
+                } else {
+                  child = const Loading();
+                }
+                return child;
+              },
+            );
+          }),
     );
   }
 }
@@ -554,124 +558,135 @@ class _TracksState extends State<Tracks> {
               return ValueListenableBuilder<String>(
                 valueListenable: context.watch<MediaViewModel>().currentVideoIdNotifier,
                 builder: ((context, currentVideoId, _) {
-                  return ListView.builder(
-                    padding: EdgeInsets.zero,
-                    physics: const NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: widget.tracks.length,
-                    itemBuilder: (context, index) {
-                      String trackArtists = getArtists(widget.tracks[index]["artists"]);
-                      String? videoId = widget.tracks[index]["videoId"];
-                      bool isMediaLiked = widget.tracks[index]["likeStatus"] == "LIKE";
-                      Color color = currentVideoId == widget.tracks[index]["videoId"] ? Colors.black : Colors.white;
-                      Color tileColor = currentVideoId == widget.tracks[index]["videoId"] ? Colors.white : Colors.black;
-                      return ListTile(
-                        tileColor: tileColor,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: currentVideoId == widget.tracks[index]["videoId"] ? BorderRadius.circular(10) : BorderRadius.circular(100)),
-                        leading: widget.playlistTitle == "Songs" || widget.playlistTitle == "Videos" || widget.playlistTitle == "Your Likes"
-                            ? ClipRRect(
-                                borderRadius: const BorderRadius.all(Radius.circular(6.0)),
-                                child: SizedBox(height: 60, width: 60, child: Image.network(widget.tracks[index]["thumbnails"][0]["url"])),
-                              )
-                            : Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                                widget.tracks[index]["videoId"] == null
-                                    ? const Icon(
-                                        Icons.error,
-                                        color: Colors.grey,
-                                        size: 15,
-                                      )
-                                    : Text(
-                                        (index + 1).toString().padLeft(2, '0'),
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: color,
-                                        ),
-                                      ),
-                              ]),
-                        minLeadingWidth: 10,
-                        trailing: areHeadersPresent && videoId != null
-                            ? FittedBox(
-                                child: LikeButton(
-                                  isLiked: isMediaLiked,
-                                  likeBuilder: (_) {
-                                    return isMediaLiked
-                                        ? const Icon(
-                                            Iconsax.heart5,
-                                            color: Colors.redAccent,
-                                          )
-                                        : Icon(
-                                            Iconsax.heart4,
-                                            color: color,
-                                          );
-                                  },
-                                  onTap: (_) async {
-                                    final mediaVMProvider = Provider.of<MediaViewModel>(context, listen: false);
-                                    late String rating;
-                                    if (isMediaLiked) {
-                                      rating = "INDIFFERENT";
-                                    } else {
-                                      rating = "LIKE";
-                                    }
-                                    isMediaLiked = await mediaVMProvider.rateMedia(videoId: videoId, rating: rating);
-                                    return isMediaLiked;
-                                  },
-                                ),
-                              )
-                            : FittedBox(
-                                child: LikeButton(
-                                  isLiked: null,
-                                  likeBuilder: (_) {
-                                    return const Icon(
-                                      Iconsax.heart_slash,
-                                      color: Colors.grey,
-                                    );
-                                  },
-                                ),
-                              ),
-                        title: Text(
-                          widget.tracks[index]["title"].trim(),
-                          style: TextStyle(fontWeight: FontWeight.bold, color: widget.tracks[index]["videoId"] == null ? Colors.grey : color),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        subtitle: Row(
-                          children: [
-                            widget.tracks[index]["isExplicit"] == true
-                                ? Row(
-                                    children: [
-                                      Icon(
-                                        Icons.explicit_rounded,
-                                        color: color,
-                                        size: 20,
-                                      ),
-                                      const Text(" "),
-                                    ],
-                                  )
-                                : const SizedBox(),
-                            Flexible(
-                              fit: FlexFit.loose,
-                              child: widget.tracks[index]["duration"] != null
-                                  ? Text(
-                                      "${widget.tracks[index]["duration"]} • $trackArtists",
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(color: color),
+                  return ValueListenableBuilder<bool>(
+                      valueListenable: context.watch<MediaViewModel>().isMediaLikedNotifier,
+                      builder: (context, isMediaLiked, _) {
+                        return ListView.builder(
+                          padding: EdgeInsets.zero,
+                          physics: const NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: widget.tracks.length,
+                          itemBuilder: (context, index) {
+                            String trackArtists = getArtists(widget.tracks[index]["artists"]);
+                            String? videoId = widget.tracks[index]["videoId"];
+                            late bool isTrackLiked;
+                            if (currentVideoId == videoId) {
+                              isTrackLiked = isMediaLiked;
+                            } else {
+                              isTrackLiked = widget.tracks[index]["likeStatus"] == "LIKE";
+                            }
+                            Color color = currentVideoId == widget.tracks[index]["videoId"] ? Colors.black : Colors.white;
+                            Color tileColor = currentVideoId == widget.tracks[index]["videoId"] ? Colors.white : Colors.black;
+                            return ListTile(
+                              tileColor: tileColor,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius:
+                                      currentVideoId == widget.tracks[index]["videoId"] ? BorderRadius.circular(10) : BorderRadius.circular(100)),
+                              leading: widget.playlistTitle == "Songs" || widget.playlistTitle == "Videos" || widget.playlistTitle == "Your Likes"
+                                  ? ClipRRect(
+                                      borderRadius: const BorderRadius.all(Radius.circular(6.0)),
+                                      child: SizedBox(height: 60, width: 60, child: Image.network(widget.tracks[index]["thumbnails"][0]["url"])),
                                     )
-                                  : Text(
-                                      trackArtists,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(color: color),
+                                  : Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                      widget.tracks[index]["videoId"] == null
+                                          ? const Icon(
+                                              Icons.error,
+                                              color: Colors.grey,
+                                              size: 15,
+                                            )
+                                          : Text(
+                                              (index + 1).toString().padLeft(2, '0'),
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: color,
+                                              ),
+                                            ),
+                                    ]),
+                              minLeadingWidth: 10,
+                              trailing: areHeadersPresent && videoId != null
+                                  ? FittedBox(
+                                      child: LikeButton(
+                                        isLiked: isTrackLiked,
+                                        likeBuilder: (_) {
+                                          return isTrackLiked
+                                              ? const Icon(
+                                                  Iconsax.heart5,
+                                                  color: Colors.redAccent,
+                                                )
+                                              : Icon(
+                                                  Iconsax.heart4,
+                                                  color: color,
+                                                );
+                                        },
+                                        onTap: (_) async {
+                                          final mediaVMProvider = Provider.of<MediaViewModel>(context, listen: false);
+                                          late String rating;
+                                          if (isTrackLiked) {
+                                            rating = "INDIFFERENT";
+                                          } else {
+                                            rating = "LIKE";
+                                          }
+                                          isTrackLiked = await mediaVMProvider.rateMedia(videoId: videoId, rating: rating);
+                                          return isTrackLiked;
+                                        },
+                                      ),
+                                    )
+                                  : FittedBox(
+                                      child: LikeButton(
+                                        isLiked: null,
+                                        likeBuilder: (_) {
+                                          return const Icon(
+                                            Iconsax.heart_slash,
+                                            color: Colors.grey,
+                                          );
+                                        },
+                                      ),
                                     ),
-                            ),
-                          ],
-                        ),
-                        onTap: () async {
-                          await _screenNavigator.visitPage(context: context, mediaData: widget.tracks[index], type: "song", queue: widget.tracks);
-                        },
-                        enabled: widget.tracks[index]["videoId"] == null ? false : true,
-                      );
-                    },
-                  );
+                              title: Text(
+                                widget.tracks[index]["title"].trim(),
+                                style: TextStyle(fontWeight: FontWeight.bold, color: widget.tracks[index]["videoId"] == null ? Colors.grey : color),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              subtitle: Row(
+                                children: [
+                                  widget.tracks[index]["isExplicit"] == true
+                                      ? Row(
+                                          children: [
+                                            Icon(
+                                              Icons.explicit_rounded,
+                                              color: color,
+                                              size: 20,
+                                            ),
+                                            const Text(" "),
+                                          ],
+                                        )
+                                      : const SizedBox(),
+                                  Flexible(
+                                    fit: FlexFit.loose,
+                                    child: widget.tracks[index]["duration"] != null
+                                        ? Text(
+                                            "${widget.tracks[index]["duration"]} • $trackArtists",
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(color: color),
+                                          )
+                                        : Text(
+                                            trackArtists,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(color: color),
+                                          ),
+                                  ),
+                                ],
+                              ),
+                              onTap: () async {
+                                await _screenNavigator.visitPage(
+                                    context: context, mediaData: widget.tracks[index], type: "song", queue: widget.tracks);
+                              },
+                              enabled: widget.tracks[index]["videoId"] == null ? false : true,
+                            );
+                          },
+                        );
+                      });
                 }),
               );
             },

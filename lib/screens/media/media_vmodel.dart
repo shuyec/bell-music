@@ -411,6 +411,7 @@ class MediaViewModel extends ChangeNotifier {
   // API request rate media
   CancelToken cancelMediaRateToken = CancelToken();
   Future<bool> rateMedia({required String videoId, required String rating}) async {
+    late bool isMediaLiked;
     late Response response;
     late Response getResponse;
     String url = "http://10.0.2.2:8000/api/media";
@@ -451,13 +452,20 @@ class MediaViewModel extends ChangeNotifier {
           connectionSuccessful = true;
           switch (rating) {
             case "LIKE":
-              return true;
+              isMediaLiked = true;
+              break;
             case "DISLIKE":
             case "INDIFFERENT":
-              return false;
+              isMediaLiked = false;
+              break;
             default:
               throw "Rating value invalid";
           }
+
+          if (videoId == currentVideoIdNotifier.value) {
+            isMediaLikedNotifier.value = isMediaLiked;
+          }
+          return isMediaLiked;
         }
       } catch (e) {
         // return Future.error(e.toString());
