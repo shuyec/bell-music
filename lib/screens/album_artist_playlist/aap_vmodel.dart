@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 class AAPViewModel extends ChangeNotifier {
   final isAPLikedNotifier = ValueNotifier<bool>(false);
+  final subStatusNotifier = ValueNotifier<bool>(false);
 
   Future rateAlbumPlaylist({required String id, required String rating}) async {
     late Response response;
@@ -76,6 +77,55 @@ class AAPViewModel extends ChangeNotifier {
     return !isAPLiked;
   }
 
+  bool changeSubStatus({required String browseId, required bool subscribe}) {
+    subscribeArtist(browseId: browseId, subscribe: subscribe);
+    subStatusNotifier.value = subscribe;
+    return subscribe;
+  }
+
+  Future<bool?> subscribeArtist({required String browseId, required bool subscribe}) async {
+    late Response response;
+    late Response getResponse;
+    bool connectionSuccessful = false;
+    late String url;
+    url = "http://10.0.2.2:8000/api/artist";
+
+    Dio dio = Dio();
+    dio.options.contentType = 'application/json; charset=UTF-8';
+    dio.options.headers['Connection'] = 'Keep-Alive';
+    dio.options.headers["Accept"] = "application/json";
+
+    while (!connectionSuccessful) {
+      try {
+        response = await dio.post(
+          url,
+          data: {'browseId': browseId, "subscribe": subscribe},
+          options: Options(
+              followRedirects: true,
+              validateStatus: (status) {
+                if (status == 500) {
+                  return true;
+                }
+                return status! < 500;
+              }),
+        );
+        String resphead = response.headers["location"]![0].toString();
+        getResponse = await dio.post(
+          resphead,
+          data: {'browseId': browseId, "subscribe": subscribe},
+        );
+        if (getResponse.statusCode == 200) {
+          connectionSuccessful = true;
+          return subscribe;
+        }
+      } catch (e) {
+        // print("errore è ${e.toString()}");
+        // return Future.error(e.toString());
+      }
+    }
+    return null;
+  }
+
   Future<Map?> getAAPData({required String browseId, required String type}) async {
     late Response response;
     late Response getResponse;
@@ -122,6 +172,8 @@ class AAPViewModel extends ChangeNotifier {
         if (getResponse.statusCode == 200) {
           connectionSuccessful = true;
           Map data = getResponse.data;
+
+          // TODO: better solution than adding "rating" to the result
           if (type == "album" || type == "playlist") {
             late bool isAPInLibrary;
             bool areHeadersPresent = await Authentication().checkIfHeadersPresent();
@@ -141,7 +193,10 @@ class AAPViewModel extends ChangeNotifier {
           } else {
             isAPLikedNotifier.value = true;
           }
-          // TODO: better solution
+
+          if (type == "artist") {
+            subStatusNotifier.value = data["subscribed"];
+          }
 
           return data;
         }
