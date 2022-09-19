@@ -6,6 +6,7 @@ import 'package:bell/widgets/error.dart';
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
+import 'package:provider/provider.dart';
 
 final ScreenNavigator _screenNavigator = ScreenNavigator();
 
@@ -17,6 +18,10 @@ class Artist extends StatefulWidget {
 }
 
 class _ArtistState extends State<Artist> {
+  void callSetState() {
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     Map arguments = ModalRoute.of(context)!.settings.arguments as Map;
@@ -48,38 +53,78 @@ class _ArtistState extends State<Artist> {
             } else if (snapshot.hasData) {
               if (data != null && data.isNotEmpty) {
                 List thumbnails = data["thumbnails"];
-                child = ListView(
-                  padding: EdgeInsets.zero,
-                  children: [
-                    Stack(
-                      alignment: Alignment.topCenter,
-                      children: [
-                        Thumbnail(thumbnails: thumbnails),
-                        Padding(
-                          padding: const EdgeInsets.all(5),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                String subs = data["subscribers"];
+                child = ValueListenableBuilder<bool>(
+                    valueListenable: context.watch<AAPViewModel>().subStatusNotifier,
+                    builder: (context, subscribed, _) {
+                      Color color = subscribed ? Colors.grey : Colors.redAccent;
+                      TextStyle subTextStyle = TextStyle(
+                        color: color,
+                      );
+
+                      return ListView(
+                        padding: EdgeInsets.zero,
+                        children: [
+                          Stack(
+                            alignment: Alignment.topCenter,
                             children: [
-                              Container(
-                                height: 160,
-                                color: Colors.transparent,
+                              Thumbnail(thumbnails: thumbnails),
+                              Padding(
+                                padding: const EdgeInsets.all(5),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      height: 160,
+                                      color: Colors.transparent,
+                                    ),
+                                    Row(
+                                      children: [
+                                        ArtistName(data: data),
+                                        TextButton(
+                                            onPressed: () {
+                                              Provider.of<AAPViewModel>(context, listen: false)
+                                                  .changeSubStatus(browseId: browseId, subscribe: !subscribed);
+                                            },
+                                            style: ButtonStyle(
+                                                shape: MaterialStateProperty.all<RoundedRectangleBorder>(RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(15.0), side: BorderSide(color: color)))),
+                                            child: Column(
+                                              children: [
+                                                Stack(
+                                                  alignment: Alignment.center,
+                                                  children: [
+                                                    const Text("Unsubscribe", style: TextStyle(color: Colors.transparent)),
+                                                    Text(
+                                                      subscribed ? "Unsubscribe" : "Subscribe",
+                                                      style: subTextStyle,
+                                                    ),
+                                                  ],
+                                                ),
+                                                Text(
+                                                  subs,
+                                                  style: subTextStyle,
+                                                ),
+                                              ],
+                                            )),
+                                      ],
+                                    ),
+                                    ArtistWorks(data: data),
+                                    data["description"] != null
+                                        ? AboutArtist(
+                                            description: data["description"],
+                                            views: data["views"],
+                                          )
+                                        : const SizedBox(),
+                                  ],
+                                ),
                               ),
-                              ArtistName(data: data),
-                              ArtistWorks(data: data),
-                              data["description"] != null
-                                  ? AboutArtist(
-                                      description: data["description"],
-                                      views: data["views"],
-                                    )
-                                  : const SizedBox(),
                             ],
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
-                );
+                        ],
+                      );
+                    });
               } else {
                 child = const Text("Here you'll see your listened artists.");
               }
@@ -100,18 +145,20 @@ class ArtistName extends StatelessWidget {
   final Map data;
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const Text(
-          "ARTIST",
-          style: TextStyle(fontSize: 15),
-        ),
-        Text(
-          data["name"],
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
-        ),
-      ],
+    return Flexible(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            "ARTIST",
+            style: TextStyle(fontSize: 15),
+          ),
+          Text(
+            data["name"],
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
+          ),
+        ],
+      ),
     );
   }
 }
