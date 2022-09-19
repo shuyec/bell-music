@@ -31,6 +31,7 @@ album_post_args.add_argument("rating", type=str)
 artist_post_args = reqparse.RequestParser()
 artist_post_args.add_argument("browseId", type=str)
 artist_post_args.add_argument("channelId", type=str)
+artist_post_args.add_argument("subscribe", type=bool)
 
 class Search(Resource):
     def post(self):
@@ -144,10 +145,16 @@ class Artist(Resource):
     def post(self, type=None):
         browse_id = artist_post_args.parse_args()["browseId"]
         channel_id = artist_post_args.parse_args()["channelId"]
+        subscribe = artist_post_args.parse_args()["subscribe"]
         if browse_id == None:
             abort(400, message="Browse Id needed")
         if type == "albums" or type == "singles":
             result = ytmusic.get_artist_albums(channelId=channel_id, params=browse_id)
+        elif subscribe != None:
+            if subscribe == True:
+                return ytmusic.subscribe_artists([browse_id])
+            else:
+                return ytmusic.unsubscribe_artists([browse_id])
         else:
             result = ytmusic.get_artist(browse_id)
         response = make_response(result, 200)
