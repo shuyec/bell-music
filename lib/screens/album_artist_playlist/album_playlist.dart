@@ -82,40 +82,47 @@ class _AlbumPlaylistState extends State<AlbumPlaylist> {
                     }
                     List tracks = data["tracks"];
                     List thumbnails = data["thumbnails"];
-                    child = SingleChildScrollView(
-                      child: Stack(
-                        alignment: Alignment.topCenter,
-                        children: [
-                          ThumbnailBackground(thumbnails: thumbnails),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              const SizedBox(height: 90),
-                              Thumbnail(thumbnails: thumbnails),
-                              MediaInfo(data: data, artist: artist),
-                              privacy == "PRIVATE"
-                                  ? Buttons(
-                                      id: id,
-                                      rating: rating,
-                                      privacy: privacy,
-                                      data: data,
-                                      artist: artist,
-                                    )
-                                  : Buttons(
-                                      id: id,
-                                      rating: rating,
-                                      data: data,
-                                      artist: artist,
-                                    ),
-                              PlayShuffleButtons(tracks: tracks),
-                              Tracks(
-                                tracks: tracks,
-                                playlistTitle: data["title"],
-                              ),
-                            ],
-                          ),
-                        ],
+                    child = RefreshIndicator(
+                      onRefresh: () {
+                        return Future(() {
+                          setState(() {});
+                        });
+                      },
+                      child: SingleChildScrollView(
+                        child: Stack(
+                          alignment: Alignment.topCenter,
+                          children: [
+                            ThumbnailBackground(thumbnails: thumbnails),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                const SizedBox(height: 90),
+                                Thumbnail(thumbnails: thumbnails),
+                                MediaInfo(data: data, artist: artist),
+                                privacy == "PRIVATE"
+                                    ? Buttons(
+                                        id: id,
+                                        rating: rating,
+                                        privacy: privacy,
+                                        data: data,
+                                        artist: artist,
+                                      )
+                                    : Buttons(
+                                        id: id,
+                                        rating: rating,
+                                        data: data,
+                                        artist: artist,
+                                      ),
+                                PlayShuffleButtons(tracks: tracks),
+                                Tracks(
+                                  tracks: tracks,
+                                  playlistTitle: data["title"],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   } else {
