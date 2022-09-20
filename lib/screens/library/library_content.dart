@@ -5,9 +5,14 @@ import 'package:bell/widgets/loading.dart';
 import 'package:bell/widgets/error.dart';
 import 'package:flutter/material.dart';
 
-class LibraryContent extends StatelessWidget {
+class LibraryContent extends StatefulWidget {
   const LibraryContent({Key? key}) : super(key: key);
 
+  @override
+  State<LibraryContent> createState() => _LibraryContentState();
+}
+
+class _LibraryContentState extends State<LibraryContent> {
   @override
   Widget build(BuildContext context) {
     final ScreenNavigator screenNavigator = ScreenNavigator();
@@ -66,11 +71,14 @@ class LibraryContent extends StatelessWidget {
               future: future,
               builder: (BuildContext context, AsyncSnapshot<List?> snapshot) {
                 Widget child;
-                final data = snapshot.data;
+                List? data = snapshot.data;
 
                 if (snapshot.connectionState != ConnectionState.done) {
                   return const Loading();
                 } else if (snapshot.hasData) {
+                  if (type == "libraryPlaylists" && data?[0]["playlistId"] == "LM") {
+                    data = data?.sublist(1);
+                  }
                   if (data != null && data.isNotEmpty) {
                     child = Padding(
                       padding: const EdgeInsets.only(left: 10, right: 10),
@@ -79,10 +87,7 @@ class LibraryContent extends StatelessWidget {
                         scrollDirection: Axis.vertical,
                         itemCount: data.length,
                         itemBuilder: (context, index) {
-                          if (type == "libraryPlaylists") {
-                            index = index + 1;
-                          }
-                          while (index < data.length) {
+                          while (index < data!.length) {
                             const TextStyle titleStyle = TextStyle(fontWeight: FontWeight.bold);
                             List thumbnails = data[index]["thumbnails"];
                             String thumbnail = thumbnails[thumbnails.length - 1]["url"];
@@ -137,7 +142,7 @@ class LibraryContent extends StatelessWidget {
                             return ListTile(
                               contentPadding: const EdgeInsets.all(5),
                               onTap: (() async {
-                                await screenNavigator.visitPage(context: context, mediaData: data[index], type: navigatorType, artist: artists);
+                                await screenNavigator.visitPage(context: context, mediaData: data![index], type: navigatorType, artist: artists);
                               }),
                               title: Text(
                                 title,
@@ -183,7 +188,13 @@ class LibraryContent extends StatelessWidget {
                 } else {
                   child = const Loading();
                 }
-                return child;
+                return RefreshIndicator(
+                    onRefresh: () {
+                      return Future(() {
+                        setState(() {});
+                      });
+                    },
+                    child: child);
               },
             ),
           ),
