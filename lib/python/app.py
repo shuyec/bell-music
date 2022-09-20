@@ -189,4 +189,8 @@ api.add_resource(Library, "/api/library/<string:type>")
 
 
 if __name__ == "__main__":
-    app.run(port=8000, debug=True)
+    # this uses http://10.0.2.2:8000/ as api url 
+    # app.run(port=8000, debug=True)
+
+    # this uses pc's ip address
+    app.run(host='192.168.1.65', port=8000, debug=True)
