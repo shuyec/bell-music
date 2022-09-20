@@ -57,6 +57,7 @@ class _ArtistState extends State<Artist> {
                 child = ValueListenableBuilder<bool>(
                     valueListenable: context.watch<AAPViewModel>().subStatusNotifier,
                     builder: (context, subscribed, _) {
+                      // subscribed = data["subscribed"];
                       Color color = subscribed ? Colors.grey : Colors.redAccent;
                       TextStyle subTextStyle = TextStyle(
                         color: color,
@@ -82,32 +83,32 @@ class _ArtistState extends State<Artist> {
                                     Row(
                                       children: [
                                         ArtistName(data: data),
-                                        TextButton(
-                                            onPressed: () {
-                                              Provider.of<AAPViewModel>(context, listen: false)
-                                                  .changeSubStatus(browseId: browseId, subscribe: !subscribed);
-                                            },
-                                            style: ButtonStyle(
-                                                shape: MaterialStateProperty.all<RoundedRectangleBorder>(RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.circular(15.0), side: BorderSide(color: color)))),
-                                            child: Column(
-                                              children: [
-                                                Stack(
-                                                  alignment: Alignment.center,
-                                                  children: [
-                                                    const Text("Unsubscribe", style: TextStyle(color: Colors.transparent)),
-                                                    Text(
-                                                      subscribed ? "Unsubscribe" : "Subscribe",
-                                                      style: subTextStyle,
-                                                    ),
-                                                  ],
-                                                ),
-                                                Text(
-                                                  subs,
-                                                  style: subTextStyle,
-                                                ),
-                                              ],
-                                            )),
+                                        // TextButton(
+                                        //     onPressed: () {
+                                        //       Provider.of<AAPViewModel>(context, listen: false)
+                                        //           .changeSubStatus(browseId: browseId, subscribe: !subscribed);
+                                        //     },
+                                        //     style: ButtonStyle(
+                                        //         shape: MaterialStateProperty.all<RoundedRectangleBorder>(RoundedRectangleBorder(
+                                        //             borderRadius: BorderRadius.circular(15.0), side: BorderSide(color: color)))),
+                                        //     child: Column(
+                                        //       children: [
+                                        //         Stack(
+                                        //           alignment: Alignment.center,
+                                        //           children: [
+                                        //             const Text("Unsubscribe", style: TextStyle(color: Colors.transparent)),
+                                        //             Text(
+                                        //               subscribed ? "Unsubscribe" : "Subscribe",
+                                        //               style: subTextStyle,
+                                        //             ),
+                                        //           ],
+                                        //         ),
+                                        //         Text(
+                                        //           subs,
+                                        //           style: subTextStyle,
+                                        //         ),
+                                        //       ],
+                                        //     )),
                                       ],
                                     ),
                                     ArtistWorks(data: data),

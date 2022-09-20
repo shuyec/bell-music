@@ -41,6 +41,19 @@ class LibraryViewModel {
     return false;
   }
 
+  // Future<bool?> checkIfInSubscriptions(String browseId) async {
+  //   final librarySubscriptions = await getLibrarySubscriptions();
+  //   if (librarySubscriptions != null) {
+  //     for (final sub in librarySubscriptions) {
+  //       if (sub["browseId"] == browseId) {
+  //         return true;
+  //       }
+  //     }
+  //     return false;
+  //   }
+  //   return null;
+  // }
+
   Future getResponseData({required String type}) async {
     late Response response;
     const String baseUrl = "http://10.0.2.2:8000/api/";

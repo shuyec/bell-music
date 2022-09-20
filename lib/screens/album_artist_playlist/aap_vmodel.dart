@@ -194,9 +194,10 @@ class AAPViewModel extends ChangeNotifier {
             isAPLikedNotifier.value = true;
           }
 
-          if (type == "artist") {
-            subStatusNotifier.value = data["subscribed"];
-          }
+          // if (type == "artist") {
+          //   subStatusNotifier.value = await LibraryViewModel().checkIfInSubscriptions(browseId) as bool;
+          //   print("DEBUG SUBSCRIBED ${subStatusNotifier.value}");
+          // }
 
           return data;
         }
