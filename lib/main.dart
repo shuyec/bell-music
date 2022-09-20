@@ -251,14 +251,18 @@ class _MainState extends State<Main> {
                 highlightElevation: 0,
                 backgroundColor: Colors.black,
                 shape: RoundedRectangleBorder(side: const BorderSide(width: 3, color: Colors.white), borderRadius: BorderRadius.circular(100)),
-                child: FittedBox(
-                  child: context.watch<MediaViewModel>().queue.isEmpty
-                      ? const Icon(
-                          Icons.music_note,
-                          size: 40,
-                        )
-                      : const PlayButton(),
-                ),
+                child: ValueListenableBuilder<bool>(
+                    valueListenable: context.watch<MediaViewModel>().emptyQueueNotifier,
+                    builder: (context, emptyQueue, _) {
+                      return FittedBox(
+                        child: emptyQueue
+                            ? const Icon(
+                                Icons.music_note,
+                                size: 40,
+                              )
+                            : const PlayButton(),
+                      );
+                    }),
               ),
             ),
           ],
