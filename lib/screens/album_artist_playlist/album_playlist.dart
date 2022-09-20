@@ -457,6 +457,7 @@ class _PlayShuffleButtonsState extends State<PlayShuffleButtons> {
     return Padding(
       padding: padding,
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(15.0),
@@ -492,7 +493,6 @@ class _PlayShuffleButtonsState extends State<PlayShuffleButtons> {
                   )),
             ),
           ),
-          const SizedBox(width: 10),
           Container(
             width: 180,
             decoration: BoxDecoration(
