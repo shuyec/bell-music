@@ -453,14 +453,15 @@ class _PlayShuffleButtonsState extends State<PlayShuffleButtons> {
         tracks.add(widget.tracks[i]);
       }
     }
+    EdgeInsets padding = const EdgeInsets.only(left: 10, right: 10, bottom: 10);
     return Padding(
-      padding: const EdgeInsets.only(left: 10, right: 10, bottom: 10),
+      padding: padding,
       child: Row(
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(15.0),
             child: Container(
-              width: 180,
+              width: (MediaQuery.of(context).size.width / 2) - (padding.left + padding.right),
               color: Colors.white,
               child: TextButton(
                   onPressed: () async {
