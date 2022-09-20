@@ -1,6 +1,9 @@
+import 'package:bell/constants.dart';
 import 'package:dio/dio.dart';
 
 class LibraryViewModel {
+  static const apiUrl = Constants.API_URL;
+
   Future<bool> checkIfInLibrary(String id) async {
     if (id.substring(0, 2) == "PL" || id.substring(0, 5) == "RDCLA") {
       List? libraryPlaylists = await getLibraryPlaylists();
@@ -56,39 +59,38 @@ class LibraryViewModel {
 
   Future getResponseData({required String type}) async {
     late Response response;
-    const String baseUrl = "http://10.0.2.2:8000/api/";
-    late String apiUrl;
+    late String url;
     bool connectionSuccessful = false;
 
     switch (type) {
       case "playlists":
         {
-          apiUrl = "library/playlists";
+          url = "api/library/playlists";
         }
         break;
       case "liked":
         {
-          apiUrl = "library/liked";
+          url = "api/library/liked";
         }
         break;
       case "albums":
         {
-          apiUrl = "library/albums";
+          url = "api/library/albums";
         }
         break;
       case "songs":
         {
-          apiUrl = "library/songs";
+          url = "api/library/songs";
         }
         break;
       case "artists":
         {
-          apiUrl = "library/artists";
+          url = "api/library/artists";
         }
         break;
       case "subscriptions":
         {
-          apiUrl = "library/subscriptions";
+          url = "api/library/subscriptions";
         }
         break;
       default:
@@ -98,7 +100,7 @@ class LibraryViewModel {
         break;
     }
 
-    String url = baseUrl + apiUrl;
+    url = apiUrl + url;
     Dio dio = Dio();
     dio.options.contentType = 'application/json; charset=UTF-8';
     dio.options.headers['Connection'] = 'Keep-Alive';

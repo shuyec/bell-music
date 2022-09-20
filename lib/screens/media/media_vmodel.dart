@@ -1,3 +1,4 @@
+import 'package:bell/constants.dart';
 import 'package:bell/general_functions.dart';
 import 'package:bell/just_audio_modified.dart';
 import 'package:bell/screens/library/library_vmodel.dart';
@@ -12,6 +13,8 @@ import 'notifiers/progress_notifier.dart';
 import 'notifiers/repeat_button_notifier.dart';
 
 class MediaViewModel extends ChangeNotifier {
+  static const apiUrl = Constants.API_URL;
+
   final currentMediaTitleNotifier = ValueNotifier<String>('');
   final currentArtistsNotifier = ValueNotifier<String>("");
   final playlistNotifier = ValueNotifier<List<String>>([]);
@@ -363,7 +366,7 @@ class MediaViewModel extends ChangeNotifier {
   Future<Map> getLyrics(String videoId) async {
     late Response response;
     late Response getResponse;
-    String url = "http://10.0.2.2:8000/api/media";
+    String url = "${apiUrl}api/media";
     bool connectionSuccessful = false;
 
     Dio dio = Dio();
@@ -414,7 +417,7 @@ class MediaViewModel extends ChangeNotifier {
     late bool isMediaLiked;
     late Response response;
     late Response getResponse;
-    String url = "http://10.0.2.2:8000/api/media";
+    String url = "${apiUrl}api/media";
     bool connectionSuccessful = false;
 
     Dio dio = Dio();
@@ -479,7 +482,7 @@ class MediaViewModel extends ChangeNotifier {
   Future<AudioMetadata?> getMedia({required String videoId}) async {
     late Response response;
     late Response getResponse;
-    String url = "http://10.0.2.2:8000/api/media";
+    String url = "${apiUrl}api/media";
     bool connectionSuccessful = false;
 
     Dio dio = Dio();

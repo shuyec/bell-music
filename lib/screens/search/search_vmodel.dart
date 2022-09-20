@@ -1,12 +1,15 @@
+import 'package:bell/constants.dart';
 import 'package:dio/dio.dart';
 
 class SearchViewModel {
+  static const apiUrl = Constants.API_URL;
+
   Future<List?> createSearch(String search, int value, CancelToken cancelToken) async {
     late Response response;
     late Response getResponse;
     bool connectionSuccessful = false;
     final List<String> types = ["top", "songs", "albums", "artists", "videos", "community-playlists", "featured-playlists"];
-    String url = "http://10.0.2.2:8000/api/search";
+    String url = "${apiUrl}api/search";
 
     if (value < 0 && value > 6) {
       throw Exception("Invalid value");

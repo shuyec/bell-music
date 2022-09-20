@@ -2,8 +2,10 @@ import 'package:bell/screens/library/library_vmodel.dart';
 import 'package:bell/services/auth.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import "package:bell/constants.dart";
 
 class AAPViewModel extends ChangeNotifier {
+  static const apiUrl = Constants.API_URL;
   final isAPLikedNotifier = ValueNotifier<bool>(false);
   final subStatusNotifier = ValueNotifier<bool>(false);
 
@@ -13,9 +15,9 @@ class AAPViewModel extends ChangeNotifier {
     bool connectionSuccessful = false;
     late String url;
     if (id.substring(0, 7) == "OLAK5uy") {
-      url = "http://10.0.2.2:8000/api/album";
+      url = "${apiUrl}album";
     } else if (id.substring(0, 2) == "PL" || id.substring(0, 6) == "RDCLAK") {
-      url = "http://10.0.2.2:8000/api/playlist";
+      url = "${apiUrl}api/playlist";
     } else {
       return null;
     }
@@ -88,7 +90,7 @@ class AAPViewModel extends ChangeNotifier {
     late Response getResponse;
     bool connectionSuccessful = false;
     late String url;
-    url = "http://10.0.2.2:8000/api/artist";
+    url = "${apiUrl}api/artist";
 
     Dio dio = Dio();
     dio.options.contentType = 'application/json; charset=UTF-8';
@@ -132,11 +134,11 @@ class AAPViewModel extends ChangeNotifier {
     bool connectionSuccessful = false;
     late String url;
     if (type == "album") {
-      url = "http://10.0.2.2:8000/api/album";
+      url = "${apiUrl}api/album";
     } else if (type == "playlist") {
-      url = "http://10.0.2.2:8000/api/playlist";
+      url = "${apiUrl}api/playlist";
     } else if (type == "artist") {
-      url = "http://10.0.2.2:8000/api/artist";
+      url = "${apiUrl}api/artist";
     } else {
       return null;
     }
@@ -213,7 +215,7 @@ class AAPViewModel extends ChangeNotifier {
     bool connectionSuccessful = false;
     late Response response;
     late String url;
-    url = "http://10.0.2.2:8000/api/artist/$type";
+    url = "${apiUrl}api/artist/$type";
     Dio dio = Dio();
     dio.options.contentType = 'application/json; charset=UTF-8';
     dio.options.headers['Connection'] = 'Keep-Alive';
