@@ -76,8 +76,12 @@ class _LibraryContentState extends State<LibraryContent> {
                 if (snapshot.connectionState != ConnectionState.done) {
                   return const Loading();
                 } else if (snapshot.hasData) {
-                  if (type == "libraryPlaylists" && data?[0]["playlistId"] == "LM") {
-                    data = data?.sublist(1);
+                  if (type == "libraryPlaylists" && data != null && data.isNotEmpty && data[0]["playlistId"] == "LM") {
+                    if (data.length > 1) {
+                      data = data.sublist(1);
+                    } else {
+                      data = [];
+                    }
                   }
                   if (data != null && data.isNotEmpty) {
                     child = Padding(
