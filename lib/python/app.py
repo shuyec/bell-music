@@ -190,10 +190,10 @@ api.add_resource(Library, "/api/library/<string:type>")
 
 if __name__ == "__main__":
     # this uses http://10.0.2.2:8000/ as api url 
-    # app.run(port=8000, debug=True)
+    app.run(port=8000, debug=True)
 
     # this uses wifi pc's ip address. Must change to own ip address
-    app.run(host='192.168.1.65', port=8000, debug=True)
+    # app.run(host='192.168.1.65', port=8000, debug=True)
 
     # this uses hotspot pc's ip address. Must change to own ip address
     # app.run(host='172.20.10.2', port=8000, debug=True)
