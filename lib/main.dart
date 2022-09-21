@@ -170,9 +170,9 @@ class _MainState extends State<Main> {
                         builder: (context, isLoading, child) {
                           // TODO: MBS bug
                           // navigate to tab 0 when media click
-                          if (isLoading) {
-                            _tabController.index = 0;
-                          }
+                          // if (isLoading) {
+                          //   _tabController.index = 0;
+                          // }
                           return !isLoading && !emptyQueue
                               ? Container(
                                   decoration: const BoxDecoration(
