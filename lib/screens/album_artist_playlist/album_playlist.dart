@@ -457,7 +457,7 @@ class _PlayShuffleButtonsState extends State<PlayShuffleButtons> {
     return Padding(
       padding: padding,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(15.0),
