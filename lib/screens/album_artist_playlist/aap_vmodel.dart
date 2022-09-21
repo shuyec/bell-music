@@ -7,7 +7,7 @@ import "package:bell/constants.dart";
 class AAPViewModel extends ChangeNotifier {
   static const apiUrl = Constants.API_URL;
   final isAPLikedNotifier = ValueNotifier<bool>(false);
-  final subStatusNotifier = ValueNotifier<bool>(false);
+  final subStatusNotifier = ValueNotifier<bool?>(null);
 
   Future rateAlbumPlaylist({required String id, required String rating}) async {
     late Response response;

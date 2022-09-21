@@ -55,7 +55,7 @@ class _ArtistState extends State<Artist> {
                 List thumbnails = data["thumbnails"];
                 String subs = data["subscribers"];
                 bool initSubscribed = data["subscribed"];
-                child = ValueListenableBuilder<bool>(
+                child = ValueListenableBuilder<bool?>(
                     valueListenable: context.watch<AAPViewModel>().subStatusNotifier,
                     builder: (context, subscribed, _) {
                       subscribed = initSubscribed;
@@ -87,7 +87,7 @@ class _ArtistState extends State<Artist> {
                                         TextButton(
                                             onPressed: () {
                                               Provider.of<AAPViewModel>(context, listen: false)
-                                                  .changeSubStatus(browseId: data["channelId"], subscribe: !subscribed);
+                                                  .changeSubStatus(browseId: data["channelId"], subscribe: !subscribed!);
                                               initSubscribed = !subscribed;
                                             },
                                             style: ButtonStyle(
