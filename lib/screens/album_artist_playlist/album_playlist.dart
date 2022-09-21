@@ -494,7 +494,7 @@ class _PlayShuffleButtonsState extends State<PlayShuffleButtons> {
             ),
           ),
           Container(
-            width: 180,
+            width: (MediaQuery.of(context).size.width / 2) - (padding.left + padding.right),
             decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20.0),
                 color: Colors.black,
