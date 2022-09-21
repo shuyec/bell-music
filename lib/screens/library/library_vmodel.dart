@@ -44,19 +44,6 @@ class LibraryViewModel {
     return false;
   }
 
-  // Future<bool?> checkIfInSubscriptions(String browseId) async {
-  //   final librarySubscriptions = await getLibrarySubscriptions();
-  //   if (librarySubscriptions != null) {
-  //     for (final sub in librarySubscriptions) {
-  //       if (sub["browseId"] == browseId) {
-  //         return true;
-  //       }
-  //     }
-  //     return false;
-  //   }
-  //   return null;
-  // }
-
   Future getResponseData({required String type}) async {
     late Response response;
     late String url;
