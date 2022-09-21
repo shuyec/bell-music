@@ -15,7 +15,7 @@ class AAPViewModel extends ChangeNotifier {
     bool connectionSuccessful = false;
     late String url;
     if (id.substring(0, 7) == "OLAK5uy") {
-      url = "${apiUrl}album";
+      url = "${apiUrl}api/album";
     } else if (id.substring(0, 2) == "PL" || id.substring(0, 6) == "RDCLAK") {
       url = "${apiUrl}api/playlist";
     } else {
