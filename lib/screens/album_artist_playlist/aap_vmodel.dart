@@ -190,16 +190,27 @@ class AAPViewModel extends ChangeNotifier {
               isAPInLibrary = false;
               isAPLikedNotifier.value = false;
             }
-
             data["rating"] = isAPLikedNotifier.value;
+            List tracks = data["tracks"];
+            Map? likedSongsPlaylist = await LibraryViewModel().getLikedSongs();
+            if (likedSongsPlaylist != null) {
+              List likedSongs = likedSongsPlaylist["tracks"];
+              List likedSongsVideoIds = [];
+              for (final likedSong in likedSongs) {
+                likedSongsVideoIds.add(likedSong["videoId"]);
+              }
+              for (Map track in tracks) {
+                bool isTrackLiked = likedSongsVideoIds.contains(track["videoId"]);
+                if (isTrackLiked || track["likeStatus"] == "LIKE") {
+                  track["likeStatus"] = "LIKE";
+                } else {
+                  track["likeStatus"] = "INDIFFERENT";
+                }
+              }
+            }
           } else {
             isAPLikedNotifier.value = true;
           }
-
-          // if (type == "artist") {
-          //   subStatusNotifier.value = await LibraryViewModel().checkIfInSubscriptions(browseId) as bool;
-          //   print("DEBUG SUBSCRIBED ${subStatusNotifier.value}");
-          // }
 
           return data;
         }
