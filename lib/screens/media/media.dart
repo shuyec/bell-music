@@ -272,7 +272,7 @@ class RateButton extends StatelessWidget {
                                   } else {
                                     rating = "LIKE";
                                   }
-                                  isMediaLiked = await mediaVMProvider.rateMedia(videoId: videoId, rating: rating);
+                                  isMediaLiked = mediaVMProvider.changeMediaRating(videoId: videoId, rating: rating);
                                   return isMediaLiked;
                                 },
                               )

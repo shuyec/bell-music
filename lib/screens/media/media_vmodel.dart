@@ -411,6 +411,19 @@ class MediaViewModel extends ChangeNotifier {
     return {};
   }
 
+  bool changeMediaRating({required String videoId, required String rating}) {
+    rateMedia(videoId: videoId, rating: rating);
+    switch (rating) {
+      case "LIKE":
+        return true;
+      case "DISLIKE":
+      case "INDIFFERENT":
+        return false;
+      default:
+        throw "Rating value invalid";
+    }
+  }
+
   // API request rate media
   CancelToken cancelMediaRateToken = CancelToken();
   Future<bool> rateMedia({required String videoId, required String rating}) async {

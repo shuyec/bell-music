@@ -634,7 +634,7 @@ class _TracksState extends State<Tracks> {
                                           } else {
                                             rating = "LIKE";
                                           }
-                                          isTrackLiked = await mediaVMProvider.rateMedia(videoId: videoId, rating: rating);
+                                          isTrackLiked = mediaVMProvider.changeMediaRating(videoId: videoId, rating: rating);
                                           return isTrackLiked;
                                         },
                                       ),
